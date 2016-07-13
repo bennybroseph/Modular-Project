@@ -3,10 +3,13 @@ using System.Collections;
 using System.Reflection;
 using Library;
 using UnityEditor;
+using System.Collections.Generic;
 
 public class ScriptableFSMEditor : EditorWindow
 {
     private static DynamicFSM s_DynamicFSM;
+
+	private List<Rect> m_WindowRects;
 
     [MenuItem("Window/Finite State Machine")]
     private static void ShowEditor()
@@ -15,6 +18,11 @@ public class ScriptableFSMEditor : EditorWindow
         s_DynamicFSM = FindObjectOfType<FiniteStateMachine>().scriptableFSM.dynamicFSM;
     }
 
+	private ScriptableFSMEditor()
+	{
+		m_WindowRects = new List<Rect> ();
+	}
+
     private void OnGUI()
     {
         if(s_DynamicFSM == null)
@@ -22,11 +30,12 @@ public class ScriptableFSMEditor : EditorWindow
 
         BeginWindows();
 
-        int i = 0;
-        foreach (var state in s_DynamicFSM.m_States)
+		for(int i = 0; i < s_DynamicFSM.m_States.Count; ++i)
         {
-            GUI.Window(i, new Rect(10, 10 + i * 100, 100, 100), DrawNodeWindow, state);
-            i++;
+			if (m_WindowRects.Count <= i)
+				m_WindowRects.Add (new Rect(10, 10 + i * 100, 100, 100));
+			
+			m_WindowRects[i] = GUI.Window(i, m_WindowRects[i], DrawNodeWindow, s_DynamicFSM.m_States[i]);            
         }
         
         EndWindows();
