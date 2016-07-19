@@ -6,5 +6,5 @@ using UnityEngine;
 public class ScriptableFSM : ScriptableObject
 {
     public DynamicFSM dynamicFSM;
-    public List<Rect> windowPositions;
+    public List<Vector2> windowPositions;
 }

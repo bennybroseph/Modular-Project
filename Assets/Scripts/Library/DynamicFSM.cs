@@ -49,6 +49,14 @@ namespace Library
         {
             get { return m_States; }
         }
+        public Dictionary<string[], IsValidateTransition> transitions
+        {
+            get { return m_Transitions; }
+        }
+        public Dictionary<string, IsValidateTransition> transitionsFromAny
+        {
+            get { return m_TransitionsFromAny; }
+        }
 
         /// <summary> Default constructor which will initialize the list and dictionary </summary>
         public DynamicFSM()
@@ -91,6 +99,15 @@ namespace Library
                 return false;
 
             m_States.Remove(a_State);
+
+            foreach (string[] key in m_Transitions.Keys)
+            {
+                if (key[0] == a_State || key[1] == a_State)
+                {
+                    RemoveTransition(key);
+                    break;
+                }
+            }
             return true;
         }
 
@@ -140,6 +157,18 @@ namespace Library
                 Debug.Warning("'" + key + "' already exists as a transition key");
                 return false;
             }
+        }
+        public bool RemoveTransition(string[] a_Key)
+        {
+            if(!m_Transitions.ContainsKey(a_Key))
+                return false;
+
+            m_Transitions.Remove(a_Key);
+            return true;
+        }
+        public bool RemoveTransition(string a_From, string a_To)
+        {
+            return RemoveTransition(new string[] { a_From, a_To });
         }
         /// <summary>
         /// Attempts to add a new transition to the current list which is able to be transitioned to from any other state
