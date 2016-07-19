@@ -29,7 +29,7 @@ namespace Library
         [SerializeField]
 #endif
         /// <summary> Cached list of all states in the enumeration </summary>
-        public List<string> m_States;
+        private List<string> m_States;
 
         /// <summary> Dynamic dictionary of all transitions as dictated by the user </summary>
         private readonly Dictionary<string[], IsValidateTransition> m_Transitions;
@@ -44,6 +44,11 @@ namespace Library
         /// Look at me. I'm the captain now.
         /// </summary>
         public string currentState { get; private set; }
+
+        public List<string> states
+        {
+            get { return m_States; }
+        }
 
         /// <summary> Default constructor which will initialize the list and dictionary </summary>
         public DynamicFSM()
@@ -63,19 +68,30 @@ namespace Library
                 currentState = a_InitialState;
         }
 
-        public void AddState(string a_State)
+        public void AddState(string a_State = null)
         {
-            m_States.Add(a_State);
-        }
-        public bool RemoveState(string a_State)
-        {
-            if (m_States.Contains(a_State))
+            if (a_State == null)
+                a_State = "State";
+
+            string newState = a_State;
+
+            int i = 0;
+            while (m_States.Contains(newState))
             {
-                m_States.Remove(a_State);
-                return true;
+                newState = a_State + " " + i;
+                ++i;
             }
 
-            return false;
+            m_States.Add(newState);
+        }
+
+        public bool RemoveState(string a_State)
+        {
+            if (!m_States.Contains(a_State))
+                return false;
+
+            m_States.Remove(a_State);
+            return true;
         }
 
         /// <summary>

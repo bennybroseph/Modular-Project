@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Reflection;
-using Library;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -15,6 +12,8 @@ public class ScriptableFSMEditor : EditorWindow
     private static void ShowEditor()
     {
         var editor = GetWindow<ScriptableFSMEditor>();
+        editor.titleContent = new GUIContent("FSM");
+
         SetReferencedDynamicFSM();
     }
 
@@ -31,13 +30,13 @@ public class ScriptableFSMEditor : EditorWindow
 
         BeginWindows();
 
-        for (int i = 0; i < s_ScriptableFSM.dynamicFSM.m_States.Count; ++i)
+        for (int i = 0; i < s_ScriptableFSM.dynamicFSM.states.Count; ++i)
         {
             if (s_ScriptableFSM.windowPositions.Count <= i)
                 s_ScriptableFSM.windowPositions.Add(new Rect(10, 10 + i * 100, 100, 100));
 
             s_ScriptableFSM.windowPositions[i] =
-                GUI.Window(i, s_ScriptableFSM.windowPositions[i], DrawNodeWindow, s_ScriptableFSM.dynamicFSM.m_States[i]);
+                GUI.Window(i, s_ScriptableFSM.windowPositions[i], DrawNodeWindow, s_ScriptableFSM.dynamicFSM.states[i]);
         }
         EndWindows();
 
@@ -45,9 +44,8 @@ public class ScriptableFSMEditor : EditorWindow
         {
             case EventType.ContextClick:
                 {
-                    Debug.Log("Clicked The Window");
-                    //CreateGeneralContextMenu();
-                    //s_ContextMenu.ShowAsContext();
+                    CreateGeneralContextMenu();
+                    s_ContextMenu.ShowAsContext();
                 }
                 break;
         }
@@ -60,39 +58,44 @@ public class ScriptableFSMEditor : EditorWindow
     }
 
     private void DrawNodeWindow(int a_WindowID)
-    {        
-        //switch (Event.current.type)
-        //{
-        //    case EventType.MouseDown:
-        //        {
-        //            if (Event.current.button != 1 ||
-        //                !s_ScriptableFSM.windowPositions[a_WindowID].Contains(Event.current.mousePosition))
-        //                return;
-        //            Debug.Log("Clicked " + s_ScriptableFSM.dynamicFSM.m_States[a_WindowID]);
-        //            //CreateWindowContextMenu(s_ScriptableFSM.dynamicFSM.m_States[a_WindowID]);
-        //            //s_ContextMenu.ShowAsContext();
-        //        }
-        //        break;
-        //}
-        Debug.Log(Event.current.type);
+    {
+        switch (Event.current.type)
+        {
+            case EventType.MouseDown:
+                {
+                    if (Event.current.button == 1)
+                    {
+                        CreateWindowContextMenu(a_WindowID);
+                        s_ContextMenu.ShowAsContext();
+                    }
+                }
+                break;
+        }
         GUI.DragWindow();
-        Debug.Log(Event.current.type);
     }
 
     private static void AddState(object a_Obj)
     {
-        s_ScriptableFSM.dynamicFSM.AddState("New State");
+        s_ScriptableFSM.dynamicFSM.AddState();
+    }
+    private static void RemoveState(object a_Obj)
+    {
+        string state = s_ScriptableFSM.dynamicFSM.states[(int)a_Obj];
+
+        s_ScriptableFSM.windowPositions.RemoveAt((int)a_Obj);
+        s_ScriptableFSM.dynamicFSM.RemoveState(state);
     }
 
     private static void CreateGeneralContextMenu()
     {
         s_ContextMenu = new GenericMenu();
-        s_ContextMenu.AddItem(new GUIContent("Create/New State"), false, AddState, "New State");
+        s_ContextMenu.AddItem(new GUIContent("Create/New State"), false, AddState, null);
     }
 
-    private static void CreateWindowContextMenu(string a_State)
+    private static void CreateWindowContextMenu(int a_ID)
     {
-        Debug.Log("Clicked " + a_State);
+        s_ContextMenu = new GenericMenu();
+        s_ContextMenu.AddItem(new GUIContent("Delete/" + s_ScriptableFSM.dynamicFSM.states[a_ID]), false, RemoveState, a_ID);
     }
 
     private static void SetReferencedDynamicFSM()

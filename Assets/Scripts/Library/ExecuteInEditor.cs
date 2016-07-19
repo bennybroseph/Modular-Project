@@ -1,5 +1,5 @@
 ﻿using UnityEngine;  // Required for all 'MonoBehavior's
-using UnityEditor;  // Required for 'EditorAplication'
+using UnityEditor;  // Required for 'EditorApplication'
 
 namespace Library    // namespace denoting that this is part of the tile mapping functionality inside the editor
 {
@@ -21,10 +21,10 @@ namespace Library    // namespace denoting that this is part of the tile mapping
 
             // Unity is in play mode
             if (EditorApplication.isPlaying)
-                OnGameStart();      // Run Game initialization
+                OnGameStart();
             // Unity started up || Game stopped running
             else
-                OnEditorStart();    // Run Editor initialization
+                OnEditorStart();
         }
         /// <summary>
         /// Run automatically by Unity on 2 known conditions
@@ -34,10 +34,10 @@ namespace Library    // namespace denoting that this is part of the tile mapping
         private void Update()
         {
             if (EditorApplication.isPlaying)
-                OnGameUpdate();     // Game is updating
+                OnGameUpdate();
             // Unity is not in play mode and it is compiling without us knowing
             else if (EditorApplication.isCompiling && !m_EditorCompiling)
-                m_EditorCompiling = true;   // Unity is compiling
+                m_EditorCompiling = true;   
             // Unity is not compiling, but it WAS compiling last we knew
             else if (m_EditorCompiling)
             {
@@ -48,7 +48,7 @@ namespace Library    // namespace denoting that this is part of the tile mapping
             // A game object is currently selected and that 'gameObject' is this one or this 'gameObject's parent
             else if (Selection.activeGameObject != null
                     && (Selection.activeGameObject == gameObject || Selection.activeGameObject.transform.parent == transform))
-                OnEditorUpdateSelected(); // Run special update function for when this 'gameObject' is considered selected
+                OnEditorUpdateSelected(); 
             // Nothing currently selected or what IS selected isn't this 'gameObject' or this 'gameObject's parent
             else
                 OnEditorUpdate();

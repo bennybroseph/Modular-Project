@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Library;
+using UnityEngine;
 using UnityEngine.UI;
+using Library;
 
 [ExecuteInEditMode]
+[RequireComponent(typeof(RectTransform), typeof(CanvasRenderer))]
 public class ProportionRenderer : ExecuteInEditor
 {
     [Serializable]
@@ -19,6 +20,8 @@ public class ProportionRenderer : ExecuteInEditor
         public string maxValue;
 
         // 'internal' prevents variables from being show in the inspector unless Debug mode is enabled
+        internal List<Image> childImages;
+
         internal PropertyInfo valueProperty;
         internal bool hasProperty;
 
@@ -28,7 +31,6 @@ public class ProportionRenderer : ExecuteInEditor
         internal PropertyInfo maxValueProperty;
         internal bool hasMaxProperty;
         internal int maxValueParse;
-
     }
 
     [SerializeField]
@@ -82,8 +84,8 @@ public class ProportionRenderer : ExecuteInEditor
     // Use this for initialization
     private void Awake()
     {
-        if (m_Values == null)
-            m_Values = new List<ValueContainer>();
+        //if (m_Values == null)
+        //    m_Values = new List<ValueContainer>();
 
         if (m_AutoUpdate && m_Values.Count > 0)
             StartCoroutine(UpdateValues());
@@ -108,7 +110,7 @@ public class ProportionRenderer : ExecuteInEditor
 
     private void GetImages()
     {
-        var images = 
+        var images =
             GetComponentsInChildren<Image>().
                 Where(x => x.transform.parent == transform && x.type == Image.Type.Filled).ToArray();
 
@@ -145,6 +147,27 @@ public class ProportionRenderer : ExecuteInEditor
             }
             if (!foundImage)
                 m_Values.Remove(valueContainer);
+        }
+
+        m_Values.Sort(
+            delegate (ValueContainer a, ValueContainer b)
+            {
+                if (a.valueImage.transform.GetSiblingIndex() > b.valueImage.transform.GetSiblingIndex())
+                    return 1;
+                if (a.valueImage.transform.GetSiblingIndex() < b.valueImage.transform.GetSiblingIndex())
+                    return -1;
+                return 0;
+            });
+
+        foreach (var valueContainer in m_Values)
+        {
+            valueContainer.childImages = new List<Image>();
+            foreach (Transform child in valueContainer.valueImage.transform)
+            {
+                var childImage = child.GetComponent<Image>();
+                if (childImage != null && childImage.type == Image.Type.Filled)
+                    valueContainer.childImages.Add(childImage);
+            }
         }
     }
 
