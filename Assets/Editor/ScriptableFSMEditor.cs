@@ -64,28 +64,28 @@ public class ScriptableFSMEditor : EditorWindow
         {
             foreach (string[] key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
             {
-                List<Vector2> position = new List<Vector2>();
+                List<Vector2> linePositions = new List<Vector2>();
 
                 int index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == key[0]);
 
-                position.Add(new Vector2(
+                linePositions.Add(new Vector2(
                         s_ScriptableFSM.windowPositions[index].x + s_BoxSize.x,
                         s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2));
 
                 index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == key[1]);
-                position.Add(new Vector2(
+                linePositions.Add(new Vector2(
                         s_ScriptableFSM.windowPositions[index].x,
                         s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2));
 
-                Handles.DrawLine(position[0], position[1]);
+                Handles.DrawLine(linePositions[0], linePositions[1]);
             }
 
             if (s_AddingTransition)
             {
                 int index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == s_TransitionAnchor);
-                Vector2 position = s_ScriptableFSM.windowPositions[index];
+                Vector2 linePosition = s_ScriptableFSM.windowPositions[index];
 
-                Handles.DrawLine(position, Event.current.mousePosition);
+                Handles.DrawLine(linePosition, Event.current.mousePosition);
             }
         }
         Handles.EndGUI();
