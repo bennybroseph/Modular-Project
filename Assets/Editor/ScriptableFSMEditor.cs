@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using Library;
 
 public class ScriptableFSMEditor : EditorWindow
 {
@@ -20,7 +21,10 @@ public class ScriptableFSMEditor : EditorWindow
     {
         var editor = GetWindow<ScriptableFSMEditor>();
         editor.titleContent = new GUIContent("FSM");
+    }
 
+    private ScriptableFSMEditor()
+    {
         s_BoxSize = new Vector2(200f, 50f);
 
         SetReferencedDynamicFSM();
@@ -35,6 +39,36 @@ public class ScriptableFSMEditor : EditorWindow
         {
             s_ScriptableFSM.windowPositions.Add(new Vector2(10 + i * 25, 10 + i * 25));
         }
+
+        Handles.BeginGUI();
+        {
+            foreach (string key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
+            {
+                string[] states = DynamicFSM.ParseStates(key);
+
+                List<int> index = new List<int>
+                {
+                    s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[0]),
+                    s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[1])
+                };
+                int coefficient = 10;
+                if (s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2 >
+                    s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2)
+                    coefficient = -coefficient;
+                List<Vector2> linePositions = new List<Vector2>()
+                {
+                    new Vector2(
+                        s_ScriptableFSM.windowPositions[index[0]].x + s_BoxSize.x / 2 - coefficient,
+                        s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2),
+                    new Vector2(
+                        s_ScriptableFSM.windowPositions[index[1]].x + s_BoxSize.x / 2 - coefficient,
+                        s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2)
+                };
+
+                Handles.DrawLine(linePositions[0], linePositions[1]);
+            }
+        }
+        Handles.EndGUI();
 
         BeginWindows();
         {
@@ -62,28 +96,13 @@ public class ScriptableFSMEditor : EditorWindow
 
         Handles.BeginGUI();
         {
-            foreach (string[] key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
-            {
-                List<Vector2> linePositions = new List<Vector2>();
-
-                int index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == key[0]);
-
-                linePositions.Add(new Vector2(
-                        s_ScriptableFSM.windowPositions[index].x + s_BoxSize.x,
-                        s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2));
-
-                index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == key[1]);
-                linePositions.Add(new Vector2(
-                        s_ScriptableFSM.windowPositions[index].x,
-                        s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2));
-
-                Handles.DrawLine(linePositions[0], linePositions[1]);
-            }
-
             if (s_AddingTransition)
             {
                 int index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == s_TransitionAnchor);
-                Vector2 linePosition = s_ScriptableFSM.windowPositions[index];
+                Vector2 linePosition =
+                    new Vector2(
+                        s_ScriptableFSM.windowPositions[index].x + s_BoxSize.x / 2f,
+                        s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2f);
 
                 Handles.DrawLine(linePosition, Event.current.mousePosition);
             }
@@ -98,6 +117,7 @@ public class ScriptableFSMEditor : EditorWindow
                     s_ContextMenu.ShowAsContext();
                 }
                 break;
+                //default: s_AddingTransition = false; break;
         }
 
         s_MousePosition = Event.current.mousePosition;
@@ -123,8 +143,13 @@ public class ScriptableFSMEditor : EditorWindow
                 {
                     if (Event.current.button == 1)
                     {
-                        CreateWindowContextMenu(a_WindowID);
-                        s_ContextMenu.ShowAsContext();
+                        if (!s_AddingTransition)
+                        {
+                            CreateWindowContextMenu(a_WindowID);
+                            s_ContextMenu.ShowAsContext();
+                        }
+                        else
+                            s_AddingTransition = false;
                     }
                     if (Event.current.button == 0 && s_AddingTransition)
                     {
@@ -160,7 +185,7 @@ public class ScriptableFSMEditor : EditorWindow
     }
     private static void RemoveTransition(object a_Obj)
     {
-        s_ScriptableFSM.dynamicFSM.RemoveTransition((string[])a_Obj);
+        s_ScriptableFSM.dynamicFSM.RemoveTransition((string)a_Obj);
     }
 
 
@@ -173,6 +198,8 @@ public class ScriptableFSMEditor : EditorWindow
     private static void CreateWindowContextMenu(int a_ID)
     {
         s_ContextMenu = new GenericMenu();
+
+        s_ContextMenu.AddItem(new GUIContent("Add/Transition"), false, AddTransition, a_ID);
         s_ContextMenu.AddItem(
             new GUIContent("Delete/'" + s_ScriptableFSM.dynamicFSM.states[a_ID] + "'"),
             false,
@@ -181,25 +208,24 @@ public class ScriptableFSMEditor : EditorWindow
 
         if (s_ScriptableFSM.dynamicFSM.transitions.Keys.Count != 0)
         {
-            foreach (string[] key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
+            foreach (string key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
             {
-                if (key[0] == s_ScriptableFSM.dynamicFSM.states[a_ID])
-                    s_ContextMenu.AddItem(
-                        new GUIContent("Delete/Transition/" + "To '" + key[1] + "'"),
-                        false,
-                        RemoveTransition,
-                        key);
-                else if (key[1] == s_ScriptableFSM.dynamicFSM.states[a_ID])
-                    s_ContextMenu.AddItem(
-                        new GUIContent("Delete/Transition/" + "From '" + key[0] + "'"),
-                        false,
-                        RemoveTransition,
-                        key);
+                string[] states = DynamicFSM.ParseStates(key);
 
+                if (states[0] == s_ScriptableFSM.dynamicFSM.states[a_ID])
+                    s_ContextMenu.AddItem(
+                        new GUIContent("Delete/Transition/" + "To '" + states[1] + "'"),
+                        false,
+                        RemoveTransition,
+                        key);
+                else if (states[1] == s_ScriptableFSM.dynamicFSM.states[a_ID])
+                    s_ContextMenu.AddItem(
+                        new GUIContent("Delete/Transition/" + "From '" + states[0] + "'"),
+                        false,
+                        RemoveTransition,
+                        key);
             }
         }
-
-        s_ContextMenu.AddItem(new GUIContent("Add/Transition"), false, AddTransition, a_ID);
     }
 
     private static void SetReferencedDynamicFSM()

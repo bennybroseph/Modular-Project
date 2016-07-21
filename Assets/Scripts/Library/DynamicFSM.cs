@@ -32,7 +32,7 @@ namespace Library
         private List<string> m_States;
 
         /// <summary> Dynamic dictionary of all transitions as dictated by the user </summary>
-        private readonly Dictionary<string[], IsValidateTransition> m_Transitions;
+        private readonly Dictionary<string, IsValidateTransition> m_Transitions;
         /// <summary>
         /// Dictionary which holds all of the transitions which are valid from any other state
         /// ex. Going from any state to 'Dead' would be a common use
@@ -49,7 +49,7 @@ namespace Library
         {
             get { return m_States; }
         }
-        public Dictionary<string[], IsValidateTransition> transitions
+        public Dictionary<string, IsValidateTransition> transitions
         {
             get { return m_Transitions; }
         }
@@ -62,7 +62,7 @@ namespace Library
         public DynamicFSM()
         {
             m_States = new List<string>();
-            m_Transitions = new Dictionary<string[], IsValidateTransition>();
+            m_Transitions = new Dictionary<string, IsValidateTransition>();
             m_TransitionsFromAny = new Dictionary<string, IsValidateTransition>();
         }
 
@@ -100,9 +100,10 @@ namespace Library
 
             m_States.Remove(a_State);
 
-            foreach (string[] key in m_Transitions.Keys)
+            foreach (string key in m_Transitions.Keys)
             {
-                if (key[0] == a_State || key[1] == a_State)
+                string[] states = ParseStates(key);
+                if (states[0] == a_State || states[1] == a_State)
                 {
                     RemoveTransition(key);
                     break;
@@ -141,7 +142,7 @@ namespace Library
             }
 
             // Properly serializes 'a_From' and 'a_To' into the expected key format
-            string[] key = { a_From, a_To };
+            string key = CreateKey(a_From, a_To);
             // if the key 'key' does not currently exist in 'm_Transitions'
             if (!m_Transitions.ContainsKey(key))
             {
@@ -158,9 +159,9 @@ namespace Library
                 return false;
             }
         }
-        public bool RemoveTransition(string[] a_Key)
+        public bool RemoveTransition(string a_Key)
         {
-            if(!m_Transitions.ContainsKey(a_Key))
+            if (!m_Transitions.ContainsKey(a_Key))
                 return false;
 
             m_Transitions.Remove(a_Key);
@@ -168,7 +169,8 @@ namespace Library
         }
         public bool RemoveTransition(string a_From, string a_To)
         {
-            return RemoveTransition(new string[] { a_From, a_To });
+            return RemoveTransition(CreateKey(a_From, a_To));
+
         }
         /// <summary>
         /// Attempts to add a new transition to the current list which is able to be transitioned to from any other state
@@ -207,7 +209,7 @@ namespace Library
         public bool Transition(string a_To)
         {
             // Converts the current state and the state to transition to into a valid key
-            string[] key = { currentState, a_To };
+            string key = CreateKey(currentState, a_To);
             // if they key exists in the transition dictionary
             if (m_Transitions.ContainsKey(key) && m_Transitions[key]() ||
                 m_TransitionsFromAny.ContainsKey(a_To) && m_TransitionsFromAny[a_To]())
@@ -217,6 +219,57 @@ namespace Library
             }
 
             return false;
+        }
+
+        public static string CreateKey(string a_From, string a_To)
+        {
+            string key = a_From + "->" + a_To;
+
+            return key;
+        }
+        public static string[] ParseStates(string a_Key)
+        {
+            string[] parsedKey =
+            {
+                a_Key.Substring(0, a_Key.IndexOf("->")),
+                a_Key.Substring(a_Key.LastIndexOf("->") + 2)
+            };
+
+            return parsedKey;
+        }
+
+        [Flags]
+        public enum TransitionType
+        {
+            To = 1,
+            From = 2,
+        }
+
+        public List<string[]> GetTransitionsOnState(string a_State, TransitionType a_Type)
+        {
+            List<string[]> transitions = new List<string[]>();
+
+            foreach (string key in m_Transitions.Keys)
+            {
+                string[] states = ParseStates(key);
+
+                if (a_Type == (TransitionType.To | TransitionType.From))
+                {
+                    if (states[0] == key || states[1] == key)
+                        transitions.Add(states);
+                }
+                else if (a_Type == TransitionType.To)
+                {
+                    if (states[1] == key)
+                        transitions.Add(states);
+                }
+                else if (a_Type == TransitionType.From)
+                {
+                    if (states[0] == key)
+                        transitions.Add(states);
+                }
+            }
+            return transitions;
         }
 
         /// <summary>
