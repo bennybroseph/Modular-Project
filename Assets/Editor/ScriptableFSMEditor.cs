@@ -60,26 +60,62 @@ public class ScriptableFSMEditor : EditorWindow
 
                 float radius = 10f;
                 float angle =
-                    (float)Math.Atan2(
+                    Mathf.PI / 2 + Mathf.Atan2(
                         s_ScriptableFSM.windowPositions[index[1]].y - s_ScriptableFSM.windowPositions[index[0]].y,
                         s_ScriptableFSM.windowPositions[index[1]].x - s_ScriptableFSM.windowPositions[index[0]].x);
                 List<Vector2> linePositions = new List<Vector2>
                 {
                     new Vector2(
                         s_ScriptableFSM.windowPositions[index[0]].x + s_BoxSize.x / 2
-                        + radius * Mathf.Cos(angle + Mathf.PI / 2),
+                        + radius * Mathf.Cos(angle),
                         s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2
-                        + radius * Mathf.Sin(angle + Mathf.PI / 2)),
+                        + radius * Mathf.Sin(angle)),
                     new Vector2(
                         s_ScriptableFSM.windowPositions[index[1]].x + s_BoxSize.x / 2
-                        + radius * Mathf.Cos(angle + Mathf.PI / 2),
+                        + radius * Mathf.Cos(angle),
                         s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2
-                        + radius * Mathf.Sin(angle + Mathf.PI / 2))
+                        + radius * Mathf.Sin(angle))
                 };
                 Handles.DrawLine(linePositions[0], linePositions[1]);
+
+                Vector2 between =
+                    new Vector2(
+                        linePositions[1].x - linePositions[0].x,
+                        linePositions[1].y - linePositions[0].y);
+                between /= 2f;
+                between += linePositions[0];
+                List<Vector3> vertices = new List<Vector3>
+                {
+                    ScalePosition(this, new Vector2(
+                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 2),
+                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 2))),
+                    ScalePosition(this, new Vector2(
+                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 4),
+                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 4))),
+                    ScalePosition(this, new Vector2(
+                        between.x + radius * Mathf.Cos(angle + Mathf.PI / 4),
+                        between.y + radius * Mathf.Sin(angle + Mathf.PI / 4))),
+                };
+
+                GL.PushMatrix();
+                GL.LoadOrtho();
+                GL.Begin(GL.TRIANGLES);
+                {
+                    GL.Color(Color.white);
+                    GL.Vertex3(vertices[0].x, vertices[0].y, vertices[0].z);
+                    GL.Vertex3(vertices[1].x, vertices[1].y, vertices[1].z);
+                    GL.Vertex3(vertices[2].x, vertices[2].y, vertices[2].z);
+                    //GL.Vertex3(0f, 0.1f, 0f);
+                    //GL.Vertex3(0f, 0.2f, 0f);
+                    //GL.Vertex3(0.1f, 0.15f, 0f);
+                }
+                GL.End();
+                GL.PopMatrix();
             }
         }
         Handles.EndGUI();
+
+
 
         BeginWindows();
         {
@@ -276,5 +312,18 @@ public class ScriptableFSMEditor : EditorWindow
             s_ScriptableFSM.windowPositions = new List<Vector2>();
 
         s_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;
+    }
+
+    private static Vector3 ScalePosition(EditorWindow a_Window, Vector2 a_Position)
+    {
+        float tabHeight = 22f;
+        Vector3 scaledPosition =
+            new Vector3(
+                a_Position.x / a_Window.position.width,
+                (a_Window.position.height - a_Position.y) / (a_Window.position.height + tabHeight));
+
+        //Debug.Log(a_Window.position.height + ", " + a_Position.y);
+
+        return scaledPosition;
     }
 }
