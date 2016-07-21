@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using Library;
+
 
 public class ScriptableFSMEditor : EditorWindow
 {
@@ -16,16 +18,20 @@ public class ScriptableFSMEditor : EditorWindow
 
     private static Vector2 s_MousePosition;
 
+    private static GUISkin s_GUISkin;
+
     [MenuItem("Window/Finite State Machine")]
     private static void ShowEditor()
     {
         var editor = GetWindow<ScriptableFSMEditor>();
         editor.titleContent = new GUIContent("FSM");
+
+        SetReferencedDynamicFSM();
     }
 
     private ScriptableFSMEditor()
     {
-        s_BoxSize = new Vector2(200f, 50f);
+        s_BoxSize = new Vector2(200f, 40f);
 
         SetReferencedDynamicFSM();
     }
@@ -51,20 +57,25 @@ public class ScriptableFSMEditor : EditorWindow
                     s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[0]),
                     s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[1])
                 };
-                int coefficient = 10;
-                if (s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2 >
-                    s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2)
-                    coefficient = -coefficient;
-                List<Vector2> linePositions = new List<Vector2>()
+
+                float radius = 10f;
+                float angle =
+                    (float)Math.Atan2(
+                        s_ScriptableFSM.windowPositions[index[1]].y - s_ScriptableFSM.windowPositions[index[0]].y,
+                        s_ScriptableFSM.windowPositions[index[1]].x - s_ScriptableFSM.windowPositions[index[0]].x);
+                List<Vector2> linePositions = new List<Vector2>
                 {
                     new Vector2(
-                        s_ScriptableFSM.windowPositions[index[0]].x + s_BoxSize.x / 2 - coefficient,
-                        s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2),
+                        s_ScriptableFSM.windowPositions[index[0]].x + s_BoxSize.x / 2
+                        + radius * Mathf.Cos(angle + Mathf.PI / 2),
+                        s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2
+                        + radius * Mathf.Sin(angle + Mathf.PI / 2)),
                     new Vector2(
-                        s_ScriptableFSM.windowPositions[index[1]].x + s_BoxSize.x / 2 - coefficient,
-                        s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2)
+                        s_ScriptableFSM.windowPositions[index[1]].x + s_BoxSize.x / 2
+                        + radius * Mathf.Cos(angle + Mathf.PI / 2),
+                        s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2
+                        + radius * Mathf.Sin(angle + Mathf.PI / 2))
                 };
-
                 Handles.DrawLine(linePositions[0], linePositions[1]);
             }
         }
@@ -81,13 +92,17 @@ public class ScriptableFSMEditor : EditorWindow
                         s_BoxSize.x,
                         s_BoxSize.y);
 
+                GUI.color = s_ScriptableFSM.dynamicFSM.currentState == s_ScriptableFSM.dynamicFSM.states[i] ?
+                    new Color(251f / 255f, 140f / 255f, 0f, 1f) :
+                    Color.gray;
+
                 windowRect =
                     GUI.Window(
                         i,
                         windowRect,
                         DrawNodeWindow,
-                        s_ScriptableFSM.dynamicFSM.states[i],
-                        GUI.skin.button);
+                        "",
+                        s_GUISkin.button);
 
                 s_ScriptableFSM.windowPositions[i] = new Vector2(windowRect.x, windowRect.y);
             }
@@ -117,7 +132,15 @@ public class ScriptableFSMEditor : EditorWindow
                     s_ContextMenu.ShowAsContext();
                 }
                 break;
-                //default: s_AddingTransition = false; break;
+            case EventType.MouseDown:
+                {
+                    if (Event.current.button == 0)
+                    {
+                        s_AddingTransition = false;
+                        Repaint();
+                    }
+                }
+                break;
         }
 
         s_MousePosition = Event.current.mousePosition;
@@ -156,11 +179,15 @@ public class ScriptableFSMEditor : EditorWindow
                         s_ScriptableFSM.dynamicFSM.AddTransition(
                             s_TransitionAnchor,
                             s_ScriptableFSM.dynamicFSM.states[a_WindowID]);
+                        EditorUtility.SetDirty(s_ScriptableFSM);
                         s_AddingTransition = false;
                     }
                 }
                 break;
         }
+        GUIStyle newStyle = GUI.skin.GetStyle("Label");
+        newStyle.alignment = TextAnchor.MiddleCenter;
+        GUI.Label(new Rect(Vector2.zero, s_BoxSize), s_ScriptableFSM.dynamicFSM.states[a_WindowID], newStyle);
         GUI.DragWindow();
     }
 
@@ -168,6 +195,8 @@ public class ScriptableFSMEditor : EditorWindow
     {
         s_ScriptableFSM.dynamicFSM.AddState();
         s_ScriptableFSM.windowPositions.Add(s_MousePosition);
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
     }
     private static void RemoveState(object a_Obj)
     {
@@ -175,6 +204,8 @@ public class ScriptableFSMEditor : EditorWindow
 
         s_ScriptableFSM.windowPositions.RemoveAt((int)a_Obj);
         s_ScriptableFSM.dynamicFSM.RemoveState(state);
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
     }
 
     private static void AddTransition(object a_Obj)
@@ -182,10 +213,14 @@ public class ScriptableFSMEditor : EditorWindow
         s_AddingTransition = true;
         s_TransitionAnchor = s_ScriptableFSM.dynamicFSM.states[(int)a_Obj];
 
+        EditorUtility.SetDirty(s_ScriptableFSM);
+
     }
     private static void RemoveTransition(object a_Obj)
     {
         s_ScriptableFSM.dynamicFSM.RemoveTransition((string)a_Obj);
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
     }
 
 
@@ -230,12 +265,16 @@ public class ScriptableFSMEditor : EditorWindow
 
     private static void SetReferencedDynamicFSM()
     {
-        if (Selection.activeGameObject == null || Selection.activeGameObject.GetComponent<FiniteStateMachine>() == null)
+        if (Selection.activeGameObject == null ||
+            Selection.activeGameObject.GetComponent<FiniteStateMachine>() == null ||
+            Selection.activeGameObject.GetComponent<FiniteStateMachine>().scriptableFSM == null)
             return;
 
         s_ScriptableFSM = Selection.activeGameObject.GetComponent<FiniteStateMachine>().scriptableFSM;
 
         if (s_ScriptableFSM.windowPositions == null)
             s_ScriptableFSM.windowPositions = new List<Vector2>();
+
+        s_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;
     }
 }

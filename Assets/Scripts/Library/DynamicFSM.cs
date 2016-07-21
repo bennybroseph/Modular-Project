@@ -32,12 +32,12 @@ namespace Library
         private List<string> m_States;
 
         /// <summary> Dynamic dictionary of all transitions as dictated by the user </summary>
-        private readonly Dictionary<string, IsValidateTransition> m_Transitions;
+        private Dictionary<string, IsValidateTransition> m_Transitions;
         /// <summary>
         /// Dictionary which holds all of the transitions which are valid from any other state
         /// ex. Going from any state to 'Dead' would be a common use
         /// </summary>
-        private readonly Dictionary<string, IsValidateTransition> m_TransitionsFromAny;
+        private Dictionary<string, IsValidateTransition> m_TransitionsFromAny;
 
         /// <summary>
         /// Read-Only property for the current state 'm_CurrentState'.
@@ -91,6 +91,9 @@ namespace Library
             }
 
             m_States.Add(newState);
+
+            if (currentState == "")
+                currentState = newState;
         }
 
         public bool RemoveState(string a_State)
