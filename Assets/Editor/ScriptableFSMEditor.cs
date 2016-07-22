@@ -46,6 +46,8 @@ public class ScriptableFSMEditor : EditorWindow
             s_ScriptableFSM.windowPositions.Add(new Vector2(10 + i * 25, 10 + i * 25));
         }
 
+        DrawGrid();
+
         Handles.BeginGUI();
         {
             foreach (string key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
@@ -58,7 +60,7 @@ public class ScriptableFSMEditor : EditorWindow
                     s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[1])
                 };
 
-                float radius = 10f;
+                float radius = 5f;
                 float angle =
                     Mathf.PI / 2 + Mathf.Atan2(
                         s_ScriptableFSM.windowPositions[index[1]].y - s_ScriptableFSM.windowPositions[index[0]].y,
@@ -76,7 +78,9 @@ public class ScriptableFSMEditor : EditorWindow
                         s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2
                         + radius * Mathf.Sin(angle))
                 };
-                Handles.DrawLine(linePositions[0], linePositions[1]);
+
+                Handles.color = Color.white;
+                Handles.DrawAAPolyLine(2f, linePositions[0], linePositions[1]);
 
                 Vector2 between =
                     new Vector2(
@@ -84,38 +88,21 @@ public class ScriptableFSMEditor : EditorWindow
                         linePositions[1].y - linePositions[0].y);
                 between /= 2f;
                 between += linePositions[0];
-                List<Vector3> vertices = new List<Vector3>
-                {
-                    ScalePosition(this, new Vector2(
-                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 2),
-                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 2))),
-                    ScalePosition(this, new Vector2(
-                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 4),
-                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 4))),
-                    ScalePosition(this, new Vector2(
-                        between.x + radius * Mathf.Cos(angle + Mathf.PI / 4),
-                        between.y + radius * Mathf.Sin(angle + Mathf.PI / 4))),
-                };
 
-                GL.PushMatrix();
-                GL.LoadOrtho();
-                GL.Begin(GL.TRIANGLES);
-                {
-                    GL.Color(Color.white);
-                    GL.Vertex3(vertices[0].x, vertices[0].y, vertices[0].z);
-                    GL.Vertex3(vertices[1].x, vertices[1].y, vertices[1].z);
-                    GL.Vertex3(vertices[2].x, vertices[2].y, vertices[2].z);
-                    //GL.Vertex3(0f, 0.1f, 0f);
-                    //GL.Vertex3(0f, 0.2f, 0f);
-                    //GL.Vertex3(0.1f, 0.15f, 0f);
-                }
-                GL.End();
-                GL.PopMatrix();
+                radius = 7f;
+                Handles.DrawAAConvexPolygon(
+                    new Vector3(
+                        between.x + (radius - 2f) * Mathf.Cos(angle + 3 * Mathf.PI / 2),
+                        between.y + (radius - 2f) * Mathf.Sin(angle + 3 * Mathf.PI / 2)),
+                    new Vector3(
+                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 4),
+                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 4)),
+                    new Vector3(
+                        between.x + radius * Mathf.Cos(angle + Mathf.PI / 4),
+                        between.y + radius * Mathf.Sin(angle + Mathf.PI / 4)));
             }
         }
         Handles.EndGUI();
-
-
 
         BeginWindows();
         {
@@ -155,7 +142,8 @@ public class ScriptableFSMEditor : EditorWindow
                         s_ScriptableFSM.windowPositions[index].x + s_BoxSize.x / 2f,
                         s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2f);
 
-                Handles.DrawLine(linePosition, Event.current.mousePosition);
+                Handles.color = Color.white;
+                Handles.DrawAAPolyLine(2f, linePosition, Event.current.mousePosition);
             }
         }
         Handles.EndGUI();
@@ -180,18 +168,6 @@ public class ScriptableFSMEditor : EditorWindow
         }
 
         s_MousePosition = Event.current.mousePosition;
-    }
-
-    private void Update()
-    {
-        if (s_AddingTransition)
-            Repaint();
-    }
-
-    private void OnSelectionChange()
-    {
-        SetReferencedDynamicFSM();
-        Repaint();
     }
 
     private void DrawNodeWindow(int a_WindowID)
@@ -223,8 +199,68 @@ public class ScriptableFSMEditor : EditorWindow
         }
         GUIStyle newStyle = GUI.skin.GetStyle("Label");
         newStyle.alignment = TextAnchor.MiddleCenter;
+        GUI.color = Color.white;
         GUI.Label(new Rect(Vector2.zero, s_BoxSize), s_ScriptableFSM.dynamicFSM.states[a_WindowID], newStyle);
         GUI.DragWindow();
+    }
+
+    private void Update()
+    {
+        if (s_AddingTransition)
+            Repaint();
+    }
+
+    private void OnSelectionChange()
+    {
+        SetReferencedDynamicFSM();
+        Repaint();
+    }
+
+    private void DrawGrid()
+    {
+        Vector2 lineSpacing = new Vector2(12f, 12f);
+        Handles.BeginGUI();
+        {
+            Handles.color = new Color(0.175f, 0.175f, 0.175f);
+            Handles.DrawAAConvexPolygon(
+                new Vector3(0, 0),
+                new Vector3(0, position.height),
+                new Vector3(position.width, position.height),
+                new Vector3(position.width, 0));
+
+            Handles.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
+            for (int i = 0; i < position.width / lineSpacing.x; ++i)
+            {
+                Handles.DrawAAPolyLine(
+                    2f, 
+                    new Vector3(i * lineSpacing.x, 0), 
+                    new Vector3(i * lineSpacing.x, position.height));
+            }
+            for (int i = 0; i < position.width / lineSpacing.y; ++i)
+            {
+                Handles.DrawAAPolyLine(
+                    2f,
+                    new Vector3(0, i * lineSpacing.y),
+                    new Vector3(position.width, i * lineSpacing.y));
+            }
+
+            Handles.color = new Color(0f, 0f, 0f, 1f);
+            for (int i = 0; i < position.width / (lineSpacing.x * 10f); ++i)
+            {
+                Handles.DrawAAPolyLine(
+                    2.5f,
+                    new Vector3(i * lineSpacing.x * 10f, 0),
+                    new Vector3(i * lineSpacing.x * 10f, position.height));
+            }
+            for (int i = 0; i < position.width / (lineSpacing.y * 10f); ++i)
+            {
+                Handles.DrawAAPolyLine(
+                    2.5f,
+                    new Vector3(0, i * lineSpacing.y * 10f),
+                    new Vector3(position.width, i * lineSpacing.y * 10f));
+            }
+        }
+        Handles.EndGUI();
     }
 
     private static void AddState(object a_Obj)
