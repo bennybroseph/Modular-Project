@@ -23,7 +23,7 @@ namespace Library
         /// Returns true or false and takes no parameters
         /// </summary>
         /// <returns> Whether or not the transition is valid based on the user's specification </returns>
-        public delegate bool IsValidateTransition();
+        public delegate bool IsValidateAction();
 
 #if UNITY_5_3_OR_NEWER
         [SerializeField]
@@ -32,12 +32,12 @@ namespace Library
         private List<string> m_States;
 
         /// <summary> Dynamic dictionary of all transitions as dictated by the user </summary>
-        private Dictionary<string, IsValidateTransition> m_Transitions;
+        private Dictionary<string, IsValidateAction> m_Transitions;
         /// <summary>
         /// Dictionary which holds all of the transitions which are valid from any other state
         /// ex. Going from any state to 'Dead' would be a common use
         /// </summary>
-        private Dictionary<string, IsValidateTransition> m_TransitionsFromAny;
+        private Dictionary<string, IsValidateAction> m_TransitionsFromAny;
 
         /// <summary>
         /// Read-Only property for the current state 'm_CurrentState'.
@@ -49,11 +49,11 @@ namespace Library
         {
             get { return m_States; }
         }
-        public Dictionary<string, IsValidateTransition> transitions
+        public Dictionary<string, IsValidateAction> transitions
         {
             get { return m_Transitions; }
         }
-        public Dictionary<string, IsValidateTransition> transitionsFromAny
+        public Dictionary<string, IsValidateAction> transitionsFromAny
         {
             get { return m_TransitionsFromAny; }
         }
@@ -62,8 +62,8 @@ namespace Library
         public DynamicFSM()
         {
             m_States = new List<string>();
-            m_Transitions = new Dictionary<string, IsValidateTransition>();
-            m_TransitionsFromAny = new Dictionary<string, IsValidateTransition>();
+            m_Transitions = new Dictionary<string, IsValidateAction>();
+            m_TransitionsFromAny = new Dictionary<string, IsValidateAction>();
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Library
         /// <param name="a_To">The state to go to</param>
         /// <param name="a_IsValidTransition">An optional delegate with no parameters that returns true when the state change is valid and false when it is not</param>
         /// <returns>Returns true if the transition was able to be added and false otherwise</returns>
-        public bool AddTransition(string a_From, string a_To, IsValidateTransition a_IsValidTransition = null)
+        public bool AddTransition(string a_From, string a_To, IsValidateAction a_IsValidTransition = null)
         {
             // if 'a_From' and 'a_To' are the same state
             if (a_From.Equals(a_To))
@@ -151,9 +151,9 @@ namespace Library
             {
                 // if the user did not pass in a delegate to check the transition
                 if (a_IsValidTransition == null)
-                    m_Transitions[key] = () => true;            // Set a default one that always allows the transition
+                    m_Transitions[key] = () => true;   // Set a default one that always allows the transition
                 else
-                    m_Transitions[key] = a_IsValidTransition;   // Otherwise use the one they passed in
+                    m_Transitions[key] = a_IsValidTransition;           // Otherwise use the one they passed in
                 return true;
             }
             else
@@ -181,7 +181,7 @@ namespace Library
         /// <param name="a_To">The state to transition to from any other state</param>
         /// <param name="a_IsValidateTransition">An optional delegate with no parameters that returns true when the state change is valid and false when it is not</param>
         /// <returns>Returns true if the transition was able to be added and false otherwise</returns>
-        public bool AddTransitionFromAny(string a_To, IsValidateTransition a_IsValidateTransition = null)
+        public bool AddTransitionFromAny(string a_To, IsValidateAction a_IsValidateTransition = null)
         {
             if (!m_States.Contains(a_To))
             {
