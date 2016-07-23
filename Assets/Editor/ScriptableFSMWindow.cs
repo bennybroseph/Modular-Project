@@ -233,7 +233,7 @@ public class ScriptableFSMWindow : EditorWindow
 
     private void OnInspectorUpdate()
     {
-        if(Selection.activeObject.GetType() == typeof(ScriptableFSM))
+        if (Selection.activeObject != null && Selection.activeObject.GetType() == typeof(ScriptableFSM))
             Repaint();
     }
 
@@ -288,6 +288,8 @@ public class ScriptableFSMWindow : EditorWindow
     {
         s_ScriptableFSM.dynamicFSM.AddState();
         s_ScriptableFSM.windowPositions.Add(s_MousePosition);
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
     }
     private static void RemoveState(object a_Obj)
     {
@@ -295,6 +297,13 @@ public class ScriptableFSMWindow : EditorWindow
 
         s_ScriptableFSM.windowPositions.RemoveAt((int)a_Obj);
         s_ScriptableFSM.dynamicFSM.RemoveState(state);
+
+        if ((int)a_Obj == s_FocusedState)
+            Selection.activeObject = null;
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
+        AssetDatabase.Refresh();
+
     }
 
     private static void AddTransition(object a_Obj)
@@ -302,10 +311,15 @@ public class ScriptableFSMWindow : EditorWindow
         s_AddingTransition = true;
         s_TransitionAnchor = s_ScriptableFSM.dynamicFSM.states[(int)a_Obj];
 
+        EditorUtility.SetDirty(s_ScriptableFSM);
+        AssetDatabase.Refresh();
     }
     private static void RemoveTransition(object a_Obj)
     {
         s_ScriptableFSM.dynamicFSM.RemoveTransition((string)a_Obj);
+
+        EditorUtility.SetDirty(s_ScriptableFSM);
+        AssetDatabase.Refresh();
     }
 
 
@@ -351,11 +365,11 @@ public class ScriptableFSMWindow : EditorWindow
     private static void SetReferencedDynamicFSM()
     {
         if (Selection.activeGameObject == null ||
-            Selection.activeGameObject.GetComponent<FiniteStateMachine>() == null ||
-            Selection.activeGameObject.GetComponent<FiniteStateMachine>().scriptableFSM == null)
+            Selection.activeGameObject.GetComponent<MonoFSM>() == null ||
+            Selection.activeGameObject.GetComponent<MonoFSM>().scriptableFSM == null)
             return;
 
-        s_ScriptableFSM = Selection.activeGameObject.GetComponent<FiniteStateMachine>().scriptableFSM;
+        s_ScriptableFSM = Selection.activeGameObject.GetComponent<MonoFSM>().scriptableFSM;
 
         if (s_ScriptableFSM.windowPositions == null)
             s_ScriptableFSM.windowPositions = new List<Vector2>();

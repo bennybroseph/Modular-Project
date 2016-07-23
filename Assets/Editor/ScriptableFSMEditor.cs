@@ -20,6 +20,7 @@ public class ScriptableFSMEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        DrawDefaultInspector();
         serializedObject.Update();
         {
             string oldName = m_ScriptableFSM.dynamicFSM.states[ScriptableFSMWindow.s_FocusedState];
@@ -37,6 +38,13 @@ public class ScriptableFSMEditor : Editor
             {
                 EditorGUILayout.LabelField(states[0] + " -> " + states[1]);
             }
+
+            if(GUILayout.Button("Force Serialization"))
+                m_ScriptableFSM.OnDisable();
+            if (GUILayout.Button("Force Deserialization"))
+                m_ScriptableFSM.OnEnable();
+            if (GUILayout.Button("Invoke Transition Check"))
+                m_ScriptableFSM.dynamicFSM.Transition(currentState);
         }
         serializedObject.ApplyModifiedProperties();
     }

@@ -12,15 +12,45 @@ MonoBehaviour:
   m_Name: FSM 2
   m_EditorClassIdentifier: 
   dynamicFSM:
+    m_CurrentState: Test State 1
     m_States:
     - Init
     - State 1
     - State 2
     - State 3
-    - State 4
+    - Test State 1
+    - Test State 2
+    - Test State 1 0
+    - Test State 2 0
+    - Test State 1 1
+    - Test State 2 1
+    - Test State 1 2
+    - Test State 2 2
+    - Test State 1 3
+    - Test State 2 3
+    - Test State 1 4
+    - Test State 2 4
   windowPositions:
   - {x: 10, y: 10}
-  - {x: 112, y: 117}
-  - {x: 218, y: 226}
-  - {x: 321, y: 335}
-  - {x: 426, y: 441}
+  - {x: 35, y: 35}
+  - {x: 60, y: 60}
+  - {x: 85, y: 85}
+  - {x: 10, y: 10}
+  - {x: 35, y: 35}
+  - {x: 10, y: 10}
+  - {x: 35, y: 35}
+  - {x: 10, y: 10}
+  - {x: 35, y: 35}
+  - {x: 60, y: 60}
+  - {x: 85, y: 85}
+  - {x: 110, y: 110}
+  - {x: 135, y: 135}
+  - {x: 160, y: 160}
+  - {x: 185, y: 185}
+  m_Keys:
+  - Test State 1->Test State 2
+  m_Values:
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C

@@ -12,5 +12,57 @@ MonoBehaviour:
   m_Name: FSM 1
   m_EditorClassIdentifier: 
   dynamicFSM:
-    m_States: []
-  windowPositions: []
+    m_CurrentState: State 2
+    m_States:
+    - Walk
+    - State 0
+    - State 2
+    - Idle
+    - State
+    - Test State 1
+    - Test State 2
+  windowPositions:
+  - {x: 509, y: 319}
+  - {x: 857, y: 521}
+  - {x: 814, y: 194}
+  - {x: 451, y: 98}
+  - {x: 40, y: 87}
+  - {x: 10, y: 10}
+  - {x: 11, y: 225}
+  m_Keys:
+  - Idle->State 2
+  - State 2->Idle
+  - Walk->State 2
+  - State 0->State 2
+  - State 2->State 0
+  - State->Idle
+  - Test State 1->Test State 2
+  m_Values:
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: <DeSerialize>m__C
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectType: 
+    m_CallbackObjectName: 
+    m_CallbackMethodName: TestTransitionCheck
