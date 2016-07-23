@@ -1,5 +1,7 @@
 ﻿using System;                       // Required for the type 'Enum'
-using System.Collections.Generic;   // Required to use 'List<T>' and 'Dictionary<T, T>'
+using System.Collections.Generic;
+using System.Linq;
+// Required to use 'List<T>' and 'Dictionary<T, T>'
 
 #if UNITY_5_3_OR_NEWER
 using UnityEngine;
@@ -76,7 +78,7 @@ namespace Library
                 currentState = a_InitialState;
         }
 
-        public void AddState(string a_State = null)
+        public void AddState(string a_State = null, int a_Index = -1)
         {
             if (a_State == null)
                 a_State = "State";
@@ -90,12 +92,35 @@ namespace Library
                 ++i;
             }
 
-            m_States.Add(newState);
+            if (a_Index == -1)
+                a_Index = m_States.Count;
+            m_States.Insert(a_Index, newState);
 
             if (currentState == "")
                 currentState = newState;
         }
+        public void RenameState(string a_OldName, string a_NewName)
+        {
+            int index = m_States.FindIndex(x => x == a_OldName);
+            m_States.Remove(a_OldName);
+            AddState(a_NewName, index);
 
+            var tempDictionary = m_Transitions.ToDictionary(x => x.Key, x => x.Value);
+            foreach (var pair in tempDictionary)
+            {
+                string[] parsedStates = ParseStates(pair.Key);
+                if (parsedStates[0] == a_OldName)
+                {
+                    RemoveTransition(pair.Key);
+                    AddTransition(a_NewName, parsedStates[1], pair.Value);
+                }
+                if (parsedStates[1] == a_OldName)
+                {
+                    RemoveTransition(pair.Key);
+                    AddTransition(parsedStates[0], a_NewName, pair.Value);
+                }
+            }
+        }
         public bool RemoveState(string a_State)
         {
             if (!m_States.Contains(a_State))
@@ -105,8 +130,8 @@ namespace Library
 
             foreach (string key in m_Transitions.Keys)
             {
-                string[] states = ParseStates(key);
-                if (states[0] == a_State || states[1] == a_State)
+                string[] parsedStates = ParseStates(key);
+                if (parsedStates[0] == a_State || parsedStates[1] == a_State)
                 {
                     RemoveTransition(key);
                     break;
@@ -258,17 +283,17 @@ namespace Library
 
                 if (a_Type == (TransitionType.To | TransitionType.From))
                 {
-                    if (states[0] == key || states[1] == key)
+                    if (states[0] == a_State || states[1] == a_State)
                         transitions.Add(states);
                 }
                 else if (a_Type == TransitionType.To)
                 {
-                    if (states[1] == key)
+                    if (states[1] == a_State)
                         transitions.Add(states);
                 }
                 else if (a_Type == TransitionType.From)
                 {
-                    if (states[0] == key)
+                    if (states[0] == a_State)
                         transitions.Add(states);
                 }
             }

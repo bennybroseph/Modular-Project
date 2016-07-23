@@ -1,26 +1,42 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using Library;
 
 [CustomEditor(typeof(ScriptableFSM))]
 public class ScriptableFSMEditor : Editor
 {
-    private SerializedProperty m_DynamicFSM;
+    private ScriptableFSM m_ScriptableFSM;
+
+    private string m_FocusedControl;
+    private string m_CurrentText;
 
     void OnEnable()
     {
         ScriptableFSMWindow.repaintEvent += Repaint;
 
-        m_DynamicFSM = serializedObject.FindProperty("dynamicFSM");
+        m_ScriptableFSM = target as ScriptableFSM;
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
         {
-            SerializedProperty states = m_DynamicFSM.FindPropertyRelative("m_States");
+            string oldName = m_ScriptableFSM.dynamicFSM.states[ScriptableFSMWindow.s_FocusedState];
+            string newName = EditorGUILayout.DelayedTextField(oldName);
 
-            GUILayout.TextField(states.GetArrayElementAtIndex(ScriptableFSMWindow.s_FocusedState).stringValue);
+            if (newName != oldName)
+                m_ScriptableFSM.dynamicFSM.RenameState(oldName, newName);
+
+            EditorGUILayout.Space();
+
+            string currentState = m_ScriptableFSM.dynamicFSM.states[ScriptableFSMWindow.s_FocusedState];
+            DynamicFSM.TransitionType both = DynamicFSM.TransitionType.To | DynamicFSM.TransitionType.From;
+
+            foreach (string[] states in m_ScriptableFSM.dynamicFSM.GetTransitionsOnState(currentState, both))
+            {
+                EditorGUILayout.LabelField(states[0] + " -> " + states[1]);
+            }
         }
         serializedObject.ApplyModifiedProperties();
     }

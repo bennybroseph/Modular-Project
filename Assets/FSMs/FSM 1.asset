@@ -12,17 +12,5 @@ MonoBehaviour:
   m_Name: FSM 1
   m_EditorClassIdentifier: 
   dynamicFSM:
-    m_States:
-    - State
-    - State 0
-    - State 1
-    - State 2
-    - State 3
-    - State 4
-  windowPositions:
-  - {x: 352, y: 302}
-  - {x: 80, y: 146}
-  - {x: 760, y: 301}
-  - {x: 193, y: 66}
-  - {x: 357, y: 394}
-  - {x: 586, y: 92}
+    m_States: []
+  windowPositions: []

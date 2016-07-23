@@ -308,7 +308,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scriptableFSM: {fileID: 11400000, guid: f4e428b2532b03444908f123c2c33138, type: 2}
+  scriptableFSM: {fileID: 11400000, guid: b948e2f824a3cd447ad57766dd9afdcc, type: 2}
 --- !u!4 &816869086
 Transform:
   m_ObjectHideFlags: 0

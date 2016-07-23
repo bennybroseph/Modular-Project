@@ -231,6 +231,12 @@ public class ScriptableFSMWindow : EditorWindow
         Repaint();
     }
 
+    private void OnInspectorUpdate()
+    {
+        if(Selection.activeObject.GetType() == typeof(ScriptableFSM))
+            Repaint();
+    }
+
     private void DrawGrid()
     {
         Vector2 lineSpacing = new Vector2(12f, 12f);
