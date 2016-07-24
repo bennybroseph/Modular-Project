@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: FSM 1
   m_EditorClassIdentifier: 
   dynamicFSM:
-    m_CurrentState: State 2
+    m_CurrentState: Test State 1
     m_States:
     - Walk
     - State 0
@@ -22,47 +22,37 @@ MonoBehaviour:
     - Test State 1
     - Test State 2
   windowPositions:
-  - {x: 509, y: 319}
-  - {x: 857, y: 521}
-  - {x: 814, y: 194}
-  - {x: 451, y: 98}
-  - {x: 40, y: 87}
-  - {x: 10, y: 10}
-  - {x: 11, y: 225}
+  - {x: 578, y: 327}
+  - {x: 856, y: 543}
+  - {x: 852, y: 412}
+  - {x: 330, y: 191}
+  - {x: 793, y: 135}
+  - {x: 45, y: 75}
+  - {x: 44, y: 277}
   m_Keys:
-  - Idle->State 2
-  - State 2->Idle
   - Walk->State 2
-  - State 0->State 2
-  - State 2->State 0
-  - State->Idle
   - Test State 1->Test State 2
+  - Test State 2->Test State 1
+  - Idle->State
+  - State->Idle
   m_Values:
   - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectID: -1
     m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
+    m_CallbackMethodName: 
   - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
-    m_CallbackMethodName: <DeSerialize>m__C
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackObjectName: 
+    m_CallbackObjectID: 7696
+    m_CallbackObjectType: MonoFSM
     m_CallbackMethodName: TestTransitionCheck
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectID: -1
+    m_CallbackObjectType: 
+    m_CallbackMethodName: 
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectID: -1
+    m_CallbackObjectType: 
+    m_CallbackMethodName: 
+  - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectID: -1
+    m_CallbackObjectType: 
+    m_CallbackMethodName: 

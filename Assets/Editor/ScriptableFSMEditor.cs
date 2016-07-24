@@ -40,9 +40,9 @@ public class ScriptableFSMEditor : Editor
             }
 
             if(GUILayout.Button("Force Serialization"))
-                m_ScriptableFSM.OnDisable();
+                m_ScriptableFSM.OnBeforeSerialize();
             if (GUILayout.Button("Force Deserialization"))
-                m_ScriptableFSM.OnEnable();
+                m_ScriptableFSM.OnAfterDeserialize();
             if (GUILayout.Button("Invoke Transition Check"))
                 m_ScriptableFSM.dynamicFSM.Transition(currentState);
         }

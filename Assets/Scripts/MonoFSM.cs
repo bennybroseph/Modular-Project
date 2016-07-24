@@ -30,11 +30,6 @@ public class MonoFSM : MonoBehaviour
 
     }
 
-    private void OnDestroy()
-    {
-        scriptableFSM.OnDisable();
-    }
-
     public bool TestTransitionCheck()
     {
         Debug.Log("Transition Successful");
