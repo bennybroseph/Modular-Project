@@ -308,7 +308,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scriptableFSM: {fileID: 11400000, guid: b948e2f824a3cd447ad57766dd9afdcc, type: 2}
+  m_ScriptableFSM: {fileID: 11400000, guid: 2a502f24281598145a689de242ede69e, type: 2}
+  m_Keys: []
+  m_Values: []
 --- !u!4 &816869086
 Transform:
   m_ObjectHideFlags: 0
@@ -349,7 +351,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scriptableFSM: {fileID: 11400000, guid: ecf4a24d80048624ea405542cccf24a2, type: 2}
+  m_ScriptableFSM: {fileID: 11400000, guid: d0c8cd0098c22fa40bfafd17c0ffbe4a, type: 2}
+  m_Keys: []
+  m_Values: []
 --- !u!4 &842376935
 Transform:
   m_ObjectHideFlags: 0

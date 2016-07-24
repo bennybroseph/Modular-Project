@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Library;
 
 
-public class ScriptableFSMWindow : EditorWindow
+public partial class ScriptableFSMWindow : EditorWindow
 {
     public delegate void RepaintEvent();
     public static event RepaintEvent repaintEvent;
@@ -55,9 +55,9 @@ public class ScriptableFSMWindow : EditorWindow
 
         Handles.BeginGUI();
         {
-            foreach (string key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
+            foreach (string transition in s_ScriptableFSM.dynamicFSM.transitions)
             {
-                string[] states = DynamicFSM.ParseStates(key);
+                string[] states = DynamicFSM.ParseStates(transition);
 
                 List<int> index = new List<int>
                 {
@@ -340,24 +340,24 @@ public class ScriptableFSMWindow : EditorWindow
             RemoveState,
             a_ID);
 
-        if (s_ScriptableFSM.dynamicFSM.transitions.Keys.Count != 0)
+        if (s_ScriptableFSM.dynamicFSM.transitions.Count != 0)
         {
-            foreach (string key in s_ScriptableFSM.dynamicFSM.transitions.Keys)
+            foreach (string transition in s_ScriptableFSM.dynamicFSM.transitions)
             {
-                string[] states = DynamicFSM.ParseStates(key);
+                string[] states = DynamicFSM.ParseStates(transition);
 
                 if (states[0] == s_ScriptableFSM.dynamicFSM.states[a_ID])
                     s_ContextMenu.AddItem(
                         new GUIContent("Delete/Transition/" + "To '" + states[1] + "'"),
                         false,
                         RemoveTransition,
-                        key);
+                        transition);
                 else if (states[1] == s_ScriptableFSM.dynamicFSM.states[a_ID])
                     s_ContextMenu.AddItem(
                         new GUIContent("Delete/Transition/" + "From '" + states[0] + "'"),
                         false,
                         RemoveTransition,
-                        key);
+                        transition);
             }
         }
     }

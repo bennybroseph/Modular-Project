@@ -1,8 +1,6 @@
 ﻿using System;                       // Required for the type 'Enum'
-using System.Collections.Generic;
+using System.Collections.Generic;   // Required to use 'List<T>' and 'Dictionary<T, T>'
 using System.Linq;
-using System.Reflection;
-// Required to use 'List<T>' and 'Dictionary<T, T>'
 
 #if UNITY_5_3_OR_NEWER
 using UnityEngine;
@@ -21,12 +19,11 @@ namespace Library
     [Serializable]
     public sealed class DynamicFSM
     {
-        /// <summary>
-        /// Delegate that will be used to determine if a state change is valid by the user.
-        /// Returns true or false and takes no parameters
-        /// </summary>
-        /// <returns> Whether or not the transition is valid based on the user's specification </returns>
-        public delegate bool IsValidCheck();
+        public delegate bool TransitionEvent(string a_Transition);
+        private event TransitionEvent transitionEvent;
+
+        public delegate void TransitionChangedEvent(string a_OldKey, string a_NewKey);
+        private event TransitionChangedEvent transitionChangedEvent;
 
 #if UNITY_5_3_OR_NEWER
         [SerializeField]
@@ -37,19 +34,28 @@ namespace Library
         [SerializeField]
 #endif
         private string m_CurrentState;
+
+        /// <summary> Cached list of all states in the enumeration </summary>
 #if UNITY_5_3_OR_NEWER
         [SerializeField]
 #endif
-        /// <summary> Cached list of all states in the enumeration </summary>
         private List<string> m_States;
 
+
         /// <summary> Dynamic dictionary of all transitions as dictated by the user </summary>
-        private readonly Dictionary<string, IsValidCheck> m_Transitions;
+#if UNITY_5_3_OR_NEWER
+        [SerializeField]
+#endif
+        private List<string> m_Transitions;
+
         /// <summary>
         /// Dictionary which holds all of the transitions which are valid from any other state
         /// ex. Going from any state to 'Dead' would be a common use
         /// </summary>
-        private readonly Dictionary<string, IsValidCheck> m_TransitionsFromAny;
+#if UNITY_5_3_OR_NEWER
+        [SerializeField]
+#endif
+        private List<string> m_TransitionsFromAny;
 
         /// <summary>
         /// Read-Only property for the current state 'm_CurrentState'.
@@ -65,11 +71,11 @@ namespace Library
         {
             get { return m_States; }
         }
-        public Dictionary<string, IsValidCheck> transitions
+        public List<string> transitions
         {
             get { return m_Transitions; }
         }
-        public Dictionary<string, IsValidCheck> transitionsFromAny
+        public List<string> transitionsFromAny
         {
             get { return m_TransitionsFromAny; }
         }
@@ -78,8 +84,8 @@ namespace Library
         public DynamicFSM()
         {
             m_States = new List<string>();
-            m_Transitions = new Dictionary<string, IsValidCheck>();
-            m_TransitionsFromAny = new Dictionary<string, IsValidCheck>();
+            m_Transitions = new List<string>();
+            m_TransitionsFromAny = new List<string>();
         }
 
         /// <summary>
@@ -122,19 +128,28 @@ namespace Library
                 currentState = "";
             AddState(a_NewName, index);
 
-            var tempDictionary = m_Transitions.ToDictionary(x => x.Key, x => x.Value);
-            foreach (var pair in tempDictionary)
+            var tempList = m_Transitions.ToList();
+            for (int i = 0; i < m_Transitions.Count; ++i)
             {
-                string[] parsedStates = ParseStates(pair.Key);
+                string[] parsedStates = ParseStates(m_Transitions[i]);
+
                 if (parsedStates[0] == a_OldName)
                 {
-                    RemoveTransition(pair.Key);
-                    AddTransition(m_States[index], parsedStates[1], pair.Value);
+                    string newKey = CreateKey(a_NewName, parsedStates[1]);
+
+                    if (transitionChangedEvent != null)
+                        transitionChangedEvent(m_Transitions[i], newKey);
+
+                    m_Transitions[i] = newKey;
                 }
                 if (parsedStates[1] == a_OldName)
                 {
-                    RemoveTransition(pair.Key);
-                    AddTransition(parsedStates[0], m_States[index], pair.Value);
+                    string newKey = CreateKey(parsedStates[0], a_NewName);
+
+                    if (transitionChangedEvent != null)
+                        transitionChangedEvent(m_Transitions[i], newKey);
+
+                    m_Transitions[i] = newKey;
                 }
             }
         }
@@ -148,13 +163,13 @@ namespace Library
             if (currentState == a_State)
                 currentState = "";
 
-            var tempDictionary = m_Transitions.ToDictionary(x => x.Key, x => x.Value);
-            foreach (string key in tempDictionary.Keys)
+            var tempList = m_Transitions.ToList();
+            foreach (string transition in tempList)
             {
-                string[] parsedStates = ParseStates(key);
+                string[] parsedStates = ParseStates(transition);
 
                 if (parsedStates[0] == a_State || parsedStates[1] == a_State)
-                    RemoveTransition(key);
+                    RemoveTransition(transition);
             }
             return true;
         }
@@ -167,7 +182,7 @@ namespace Library
         /// <param name="a_IsValidTransition">An optional delegate with no parameters that returns true when 
         ///                                   the state change is valid and false when it is not</param>
         /// <returns>Returns true if the transition was able to be added and false otherwise</returns>
-        public bool AddTransition(string a_From, string a_To, IsValidCheck a_IsValidTransition = null)
+        public bool AddTransition(string a_From, string a_To)
         {
             // if 'a_From' and 'a_To' are the same state
             if (a_From.Equals(a_To))
@@ -179,47 +194,42 @@ namespace Library
             // if 'a_From' or 'a_To' is not in the list of states
             if (!m_States.Contains(a_From) || !m_States.Contains(a_To))
             {
-                string invalidKey;   // Will decipher which state is invalid
+                string invalidState;   // Will decipher which state is invalid
                 if (!m_States.Contains(a_From))
-                    invalidKey = a_From;
+                    invalidState = a_From;
                 else
-                    invalidKey = a_To;
+                    invalidState = a_To;
 
-                Debug.Warning("'" + invalidKey + "' does not currently exist as a state");
+                Debug.Warning("'" + invalidState + "' does not currently exist as a state");
                 return false;
             }
 
             // Properly serializes 'a_From' and 'a_To' into the expected key format
-            string key = CreateKey(a_From, a_To);
+            string transition = CreateKey(a_From, a_To);
             // if the key 'key' does not currently exist in 'm_Transitions'
-            if (!m_Transitions.ContainsKey(key))
+            if (!m_Transitions.Contains(transition))
             {
-                // if the user did not pass in a delegate to check the transition
-                if (a_IsValidTransition == null)
-                    m_Transitions[key] = () => true;   // Set a default one that always allows the transition
-                else
-                    m_Transitions[key] = a_IsValidTransition;           // Otherwise use the one they passed in
+                m_Transitions.Add(transition);
                 return true;
             }
             else
             {
-                Debug.Warning("'" + key + "' already exists as a transition key");
+                Debug.Warning("'" + transition + "' already exists as a transition");
                 return false;
             }
         }
-        public bool RemoveTransition(string a_Key)
+        public bool RemoveTransition(string a_Transition)
         {
-            if (!m_Transitions.ContainsKey(a_Key))
+            if (!m_Transitions.Contains(a_Transition))
                 return false;
 
-            m_Transitions.Remove(a_Key);
+            if (transitionChangedEvent != null)
+                transitionChangedEvent(a_Transition, null);
+
+            m_Transitions.Remove(a_Transition);
             return true;
         }
-        public bool RemoveTransition(string a_From, string a_To)
-        {
-            return RemoveTransition(CreateKey(a_From, a_To));
 
-        }
         /// <summary>
         /// Attempts to add a new transition to the current list which is able to be transitioned to 
         /// from any other state
@@ -228,7 +238,7 @@ namespace Library
         /// <param name="a_IsValidateTransition">An optional delegate with no parameters that returns true when 
         ///                                      the state change is valid and false when it is not</param>
         /// <returns>Returns true if the transition was able to be added and false otherwise</returns>
-        public bool AddTransitionFromAny(string a_To, IsValidCheck a_IsValidateTransition = null)
+        public bool AddTransitionFromAny(string a_To)
         {
             if (!m_States.Contains(a_To))
             {
@@ -236,12 +246,9 @@ namespace Library
                 return false;
             }
 
-            if (!m_TransitionsFromAny.ContainsKey(a_To))
+            if (!m_TransitionsFromAny.Contains(a_To))
             {
-                if (a_IsValidateTransition == null)
-                    m_TransitionsFromAny[a_To] = () => true;
-                else
-                    m_TransitionsFromAny[a_To] = a_IsValidateTransition;
+                m_TransitionsFromAny.Add(a_To);
                 return true;
             }
             else
@@ -259,16 +266,20 @@ namespace Library
         public bool Transition(string a_To)
         {
             // Converts the current state and the state to transition to into a valid key
-            string key = CreateKey(currentState, a_To);
-            // if they key exists in the transition dictionary
-            if (m_Transitions.ContainsKey(key) && m_Transitions[key]() ||
-                m_TransitionsFromAny.ContainsKey(a_To) && m_TransitionsFromAny[a_To]())
-            {
-                currentState = a_To;    // Set the state
-                return true;            // Success
-            }
+            var transition = CreateKey(currentState, a_To);
+            // if they key exists in the transitions list
+            if (!m_Transitions.Contains(transition) && !m_Transitions.Contains(a_To))
+                return false;
 
-            return false;
+            var canTransition = true;
+            if (transitionEvent != null)
+                canTransition = transitionEvent(transition);
+
+            if (!canTransition)
+                return false;
+
+            currentState = a_To;    // Set the state
+            return true;            // Success
         }
 
         public static string CreateKey(string a_From, string a_To)
@@ -299,9 +310,9 @@ namespace Library
         {
             List<string[]> transitions = new List<string[]>();
 
-            foreach (string key in m_Transitions.Keys)
+            foreach (string transition in m_Transitions)
             {
-                string[] states = ParseStates(key);
+                string[] states = ParseStates(transition);
 
                 if (a_Type == (TransitionType.To | TransitionType.From))
                 {
@@ -322,6 +333,29 @@ namespace Library
             return transitions;
         }
 
+        public bool Subscribe(TransitionEvent a_Subscription)
+        {
+            if (IsTransitionRegistered(transitionEvent, a_Subscription))
+                return false;
+
+            transitionEvent += a_Subscription;
+            return true;
+        }
+        public bool Subscribe(TransitionChangedEvent a_Subscription)
+        {
+            if (IsTransitionRegistered(transitionEvent, a_Subscription))
+                return false;
+
+            transitionChangedEvent += a_Subscription;
+            return true;
+        }
+        private bool IsTransitionRegistered(Delegate a_Event, Delegate a_Subscription)
+        {
+            return
+                a_Event != null &&
+                a_Event.GetInvocationList().Any(transition => transition == a_Subscription);
+        }
+
         /// <summary>
         /// Prints the cached states in the format:
         /// ORDER - STATE
@@ -338,9 +372,9 @@ namespace Library
         public void PrintTransitions()
         {
             var i = 0;
-            foreach (var iPair in m_Transitions)
+            foreach (var transition in m_Transitions)
             {
-                Debug.Message(i + " - " + iPair.Key);
+                Debug.Message(i + " - " + transition);
                 i++;
             }
         }

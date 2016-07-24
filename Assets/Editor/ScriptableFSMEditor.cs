@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using Library;
 
 [CustomEditor(typeof(ScriptableFSM))]
@@ -39,10 +38,10 @@ public class ScriptableFSMEditor : Editor
                 EditorGUILayout.LabelField(states[0] + " -> " + states[1]);
             }
 
-            if(GUILayout.Button("Force Serialization"))
-                m_ScriptableFSM.OnBeforeSerialize();
-            if (GUILayout.Button("Force Deserialization"))
-                m_ScriptableFSM.OnAfterDeserialize();
+            //if(GUILayout.Button("Force Serialization"))
+            //    m_ScriptableFSM.OnBeforeSerialize();
+            //if (GUILayout.Button("Force Deserialization"))
+            //    m_ScriptableFSM.OnAfterDeserialize();
             if (GUILayout.Button("Invoke Transition Check"))
                 m_ScriptableFSM.dynamicFSM.Transition(currentState);
         }
