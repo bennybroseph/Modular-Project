@@ -14,26 +14,24 @@ MonoBehaviour:
   dynamicFSM:
     m_CurrentState: Test State 1
     m_States:
-    - Test State 1
-    - Test State 2
     - State
     - State 0
+    - Test State 2
+    - Test State 1
   windowPositions:
-  - {x: 7, y: 7}
-  - {x: 7, y: 101}
-  - {x: 184, y: 184}
-  - {x: 552, y: 185}
+  - {x: 258, y: 256}
+  - {x: 731, y: 362}
+  - {x: 26, y: 43}
+  - {x: 34, y: 178}
   m_Keys:
   - Test State 1->Test State 2
-  - State 0->State
-  - State->State 0
+  - Test State 2->Test State 1
   m_Values:
   - m_CallbackObject: {fileID: 0}
+    m_CallbackObjectID: 7702
     m_CallbackObjectType: MonoFSM
-    m_CallbackMethodName: TestTransitionCheck
+    m_CallbackMethodName: MethodTransitionCheck
   - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackMethodName: 
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectType: 
-    m_CallbackMethodName: 
+    m_CallbackObjectID: -1
+    m_CallbackObjectType: MonoFSM
+    m_CallbackMethodName: StaticCheck

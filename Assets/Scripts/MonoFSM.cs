@@ -17,10 +17,9 @@ public class MonoFSM : MonoBehaviour
                 scriptableFSM.dynamicFSM.AddState("Test State 1");
             if (!scriptableFSM.dynamicFSM.states.Contains("Test State 2"))
                 scriptableFSM.dynamicFSM.AddState("Test State 2");
-
-            if (!scriptableFSM.dynamicFSM.transitions.ContainsKey(
-                DynamicFSM.CreateKey("Test State 1", "Test State 2")))
-                scriptableFSM.dynamicFSM.AddTransition("Test State 1", "Test State 2", TestTransitionCheck);
+            
+            scriptableFSM.dynamicFSM.AddTransition("Test State 1", "Test State 2", MethodTransitionCheck);
+            scriptableFSM.dynamicFSM.AddTransition("Test State 2", "Test State 1", StaticCheck);
         }
     }
 
@@ -30,9 +29,15 @@ public class MonoFSM : MonoBehaviour
 
     }
 
-    public bool TestTransitionCheck()
+    public bool MethodTransitionCheck()
     {
-        Debug.Log("Transition Successful");
+        Debug.Log("Method Transition Check Successful");
+        return true;
+    }
+
+    private static bool StaticCheck()
+    {
+        Debug.Log("Static Transition Check Successful");
         return true;
     }
 }

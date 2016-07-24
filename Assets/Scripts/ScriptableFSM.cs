@@ -1,7 +1,9 @@
 ﻿using System;
 using Library;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 
@@ -67,7 +69,7 @@ public class ScriptableFSM : ScriptableObject, ISerializationCallbackReceiver
                 return () => true;
 
             if (m_CallbackObjectID == -1)
-                return (DynamicFSM.IsValidCheck) Delegate.CreateDelegate(
+                return (DynamicFSM.IsValidCheck)Delegate.CreateDelegate(
                     typeof(DynamicFSM.IsValidCheck),
                     Type.GetType(m_CallbackObjectType).GetMethod(m_CallbackMethodName));
 
@@ -85,11 +87,10 @@ public class ScriptableFSM : ScriptableObject, ISerializationCallbackReceiver
             return CreateIsValidCheck();
         }
     }
-
     public void OnBeforeSerialize()
     {
-        m_Keys = new List<string>();
-        m_Values = new List<IsValidTransition>();
+        m_Keys.Clear();
+        m_Values.Clear();
 
         foreach (var keyValuePair in dynamicFSM.transitions)
         {
@@ -104,6 +105,12 @@ public class ScriptableFSM : ScriptableObject, ISerializationCallbackReceiver
                     ? new IsValidTransition(targetAsObject, keyValuePair.Value.Method)
                     : new IsValidTransition(keyValuePair.Value.Target.GetType(), keyValuePair.Value.Method);
             }
+            else if (keyValuePair.Value.Method.DeclaringType != null &&
+                     !keyValuePair.Value.Method.GetCustomAttributes(typeof(CompilerGeneratedAttribute), false).Any())
+            {
+                newIsValidTransition =
+                    new IsValidTransition(keyValuePair.Value.Method.DeclaringType, keyValuePair.Value.Method);
+            }
 
             m_Values.Add(newIsValidTransition);
         }
@@ -114,7 +121,14 @@ public class ScriptableFSM : ScriptableObject, ISerializationCallbackReceiver
         {
             string[] states = DynamicFSM.ParseStates(m_Keys[i]);
 
-            dynamicFSM.AddTransition(states[0], states[1], m_Values[i].DeSerialize());
+            try
+            {
+                dynamicFSM.AddTransition(states[0], states[1], m_Values[i].DeSerialize());
+            }
+            catch (ArgumentException exception)
+            {
+                Debug.LogWarning("Argument Exception: " + exception.Message);
+            }
         }
     }
 }
