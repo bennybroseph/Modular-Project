@@ -47,7 +47,7 @@ public class FSMStateEditor : Editor
 	}
 
 	public override void OnInspectorGUI ()
-	{
+	{		
 		serializedObject.Update();
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -67,7 +67,20 @@ public class FSMStateEditor : Editor
 			EditorGUILayout.Space();
 			m_ReorderableList.DoLayoutList();
 			EditorGUILayout.Space();
+
+			if (GUILayout.Button ("Delete This State")) 
+			{
+				if (EditorUtility.DisplayDialog ("Warning!", 
+					    "Are you sure you want to delete this state?", "Yes", "No")) 
+				{
+					Selection.activeObject = null;
+					DestroyImmediate (m_State, true);
+				}
+			}
 		}
+		if (m_State == null)
+			return;
+
 		serializedObject.ApplyModifiedProperties ();
 
 		m_State.name = m_DisplayName.stringValue;

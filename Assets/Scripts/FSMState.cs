@@ -90,6 +90,8 @@ public class FSMState : ScriptableObject
 		tempList = m_ToTransitions.ToList();
 		foreach (var transition in tempList)
 			transition.OnStateDestroyed();
+
+		m_Parent.OnStateDestroyed (this);
     }
 
     public void OnTransitionDestroyed(FSMTransition a_FSMTransition)

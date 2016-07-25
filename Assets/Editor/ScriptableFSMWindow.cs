@@ -64,6 +64,27 @@ public partial class ScriptableFSMWindow : EditorWindow
 
         Handles.BeginGUI();
         {
+			if (Selection.activeObject.GetType() == typeof(FSMState)) 
+			{
+				var activeState = Selection.activeObject as FSMState;
+
+				float width = 5f;
+				Handles.color = new Color(1, 1, 1, 0.2f);
+				Handles.DrawAAConvexPolygon(
+					new Vector3(
+						activeState.position.x - width,
+						activeState.position.y - width),
+					new Vector3(
+						activeState.position.x - width,
+						activeState.position.y + m_StateButtonSize.y + width),
+					new Vector3(
+						activeState.position.x + m_StateButtonSize.x + width,
+						activeState.position.y + m_StateButtonSize.y + width),
+					new Vector3(
+						activeState.position.x + m_StateButtonSize.x + width,
+						activeState.position.y - width));			
+			}
+
             foreach (var state in m_ScriptableFSM.m_States)
             {
                 foreach (var transition in state.transitions)

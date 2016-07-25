@@ -34,7 +34,6 @@ public class ScriptableFSM : ScriptableObject
     }
     public void RemoveState(FSMState a_State)
     {
-        m_States.Remove(a_State);
         DestroyImmediate(a_State, true);
     }
 
@@ -52,6 +51,11 @@ public class ScriptableFSM : ScriptableObject
 
         m_IsInitialized = true;
     }
+
+	public void OnStateDestroyed(FSMState a_State)
+	{
+		m_States.Remove (a_State);
+	}
 }
 
 public static class ScriptableExtension
