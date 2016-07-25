@@ -10,119 +10,136 @@ public partial class ScriptableFSMWindow : EditorWindow
     public delegate void RepaintEvent();
     public static event RepaintEvent repaintEvent;
 
-    public static int s_FocusedState;
+    [SerializeField]
+    private Vector2 m_StateButtonSize = new Vector2(200, 40);
+    [SerializeField]
+    private Vector2 m_SpecialButtonSize = new Vector2(150, 30);
 
-    private static ScriptableFSM s_ScriptableFSM;
+    [SerializeField]
+    private Color m_NormalButtonColor = Color.gray;
+    [SerializeField]
+    private Color m_EntryButtonColor = Color.green;
+    [SerializeField]
+    private Color m_AnyStateButtonColor = Color.blue;
 
-    private static GenericMenu s_ContextMenu;
+    private ScriptableFSM m_ScriptableFSM;
 
-    private static Vector2 s_BoxSize;
+    private GenericMenu m_ContextMenu;
 
-    private static string s_TransitionAnchor;
-    private static bool s_AddingTransition;
+    private FSMState m_TransitionAnchor;
+    private bool m_AddingTransition;
 
-    private static Vector2 s_MousePosition;
+    private Vector2 m_MousePosition;
 
-    private static GUISkin s_GUISkin;
+    private GUISkin m_GUISkin;
 
     [MenuItem("Window/Finite State Machine")]
     private static void ShowEditor()
     {
         var editor = GetWindow<ScriptableFSMWindow>();
         editor.titleContent = new GUIContent("FSM");
-
-        SetReferencedDynamicFSM();
+        editor.SetReferencedDynamicFSM();
     }
 
     private ScriptableFSMWindow()
     {
-        s_BoxSize = new Vector2(200f, 40f);
+        SetReferencedDynamicFSM();
+    }
 
+    private void OnFocus()
+    {
+        SetReferencedDynamicFSM();
+    }
+    private void OnEnable()
+    {
         SetReferencedDynamicFSM();
     }
 
     private void OnGUI()
     {
-        if (s_ScriptableFSM == null)
-            return;
-
-        for (int i = 0; s_ScriptableFSM.windowPositions.Count < s_ScriptableFSM.dynamicFSM.states.Count; ++i)
-        {
-            s_ScriptableFSM.windowPositions.Add(new Vector2(10 + i * 25, 10 + i * 25));
-        }
-
         DrawGrid();
+
+        if (m_ScriptableFSM == null)
+            return;
 
         Handles.BeginGUI();
         {
-            foreach (string transition in s_ScriptableFSM.dynamicFSM.transitions)
+            foreach (var state in m_ScriptableFSM.m_States)
             {
-                string[] states = DynamicFSM.ParseStates(transition);
-
-                List<int> index = new List<int>
+                foreach (var transition in state.transitions)
                 {
-                    s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[0]),
-                    s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == states[1])
-                };
+                    float radius = 5f;
+                    float angle =
+                        Mathf.PI / 2f + Mathf.Atan2(
+                            transition.state.toState.position.y - transition.state.fromState.position.y,
+                            transition.state.toState.position.x - transition.state.fromState.position.x);
+                    List<Vector2> linePositions = new List<Vector2>
+                    {
+                        new Vector2(
+                            transition.state.fromState.position.x + m_StateButtonSize.x / 2f
+                            + radius * Mathf.Cos(angle),
+                            transition.state.fromState.position.y + m_StateButtonSize.y / 2f
+                            + radius * Mathf.Sin(angle)),
+                        new Vector2(
+                            transition.state.toState.position.x + m_StateButtonSize.x / 2f
+                            + radius * Mathf.Cos(angle),
+                            transition.state.toState.position.y + m_StateButtonSize.y / 2f
+                            + radius * Mathf.Sin(angle))
+                    };
 
-                float radius = 5f;
-                float angle =
-                    Mathf.PI / 2 + Mathf.Atan2(
-                        s_ScriptableFSM.windowPositions[index[1]].y - s_ScriptableFSM.windowPositions[index[0]].y,
-                        s_ScriptableFSM.windowPositions[index[1]].x - s_ScriptableFSM.windowPositions[index[0]].x);
-                List<Vector2> linePositions = new List<Vector2>
-                {
-                    new Vector2(
-                        s_ScriptableFSM.windowPositions[index[0]].x + s_BoxSize.x / 2
-                        + radius * Mathf.Cos(angle),
-                        s_ScriptableFSM.windowPositions[index[0]].y + s_BoxSize.y / 2
-                        + radius * Mathf.Sin(angle)),
-                    new Vector2(
-                        s_ScriptableFSM.windowPositions[index[1]].x + s_BoxSize.x / 2
-                        + radius * Mathf.Cos(angle),
-                        s_ScriptableFSM.windowPositions[index[1]].y + s_BoxSize.y / 2
-                        + radius * Mathf.Sin(angle))
-                };
+                    Handles.color = Color.white;
+                    Handles.DrawAAPolyLine(2.5f, linePositions[0], linePositions[1]);
 
-                Handles.color = Color.white;
-                Handles.DrawAAPolyLine(2f, linePositions[0], linePositions[1]);
+                    Vector2 between =
+                        new Vector2(
+                            linePositions[1].x - linePositions[0].x,
+                            linePositions[1].y - linePositions[0].y);
+                    between /= 2f;
+                    between += linePositions[0];
 
-                Vector2 between =
-                    new Vector2(
-                        linePositions[1].x - linePositions[0].x,
-                        linePositions[1].y - linePositions[0].y);
-                between /= 2f;
-                between += linePositions[0];
-
-                radius = 7f;
-                Handles.DrawAAConvexPolygon(
-                    new Vector3(
-                        between.x + (radius - 2f) * Mathf.Cos(angle + 3 * Mathf.PI / 2),
-                        between.y + (radius - 2f) * Mathf.Sin(angle + 3 * Mathf.PI / 2)),
-                    new Vector3(
-                        between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 4),
-                        between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 4)),
-                    new Vector3(
-                        between.x + radius * Mathf.Cos(angle + Mathf.PI / 4),
-                        between.y + radius * Mathf.Sin(angle + Mathf.PI / 4)));
+                    radius = 7f;
+                    Handles.DrawAAConvexPolygon(
+                        new Vector3(
+                            between.x + (radius - 2f) * Mathf.Cos(angle + 3 * Mathf.PI / 2),
+                            between.y + (radius - 2f) * Mathf.Sin(angle + 3 * Mathf.PI / 2)),
+                        new Vector3(
+                            between.x + radius * Mathf.Cos(angle + 3 * Mathf.PI / 4),
+                            between.y + radius * Mathf.Sin(angle + 3 * Mathf.PI / 4)),
+                        new Vector3(
+                            between.x + radius * Mathf.Cos(angle + Mathf.PI / 4),
+                            between.y + radius * Mathf.Sin(angle + Mathf.PI / 4)));
+                }
             }
         }
         Handles.EndGUI();
 
         BeginWindows();
         {
-            for (int i = 0; i < s_ScriptableFSM.dynamicFSM.states.Count; ++i)
+            for (int i = 0; i < m_ScriptableFSM.m_States.Count; ++i)
             {
+                Vector2 buttonSize = new Vector2(50f, 50f);
+                switch (m_ScriptableFSM.m_States[i].attribute)
+                {
+                    case FSMState.Attribute.None:
+                        GUI.color = m_NormalButtonColor;
+                        buttonSize = m_StateButtonSize;
+                        break;
+                    case FSMState.Attribute.Entry:
+                        GUI.color = m_EntryButtonColor;
+                        buttonSize = m_SpecialButtonSize;
+                        break;
+                    case FSMState.Attribute.ToAny:
+                        GUI.color = m_AnyStateButtonColor;
+                        buttonSize = m_SpecialButtonSize;
+                        break;
+                }
+
                 Rect windowRect =
                     new Rect(
-                        s_ScriptableFSM.windowPositions[i].x,
-                        s_ScriptableFSM.windowPositions[i].y,
-                        s_BoxSize.x,
-                        s_BoxSize.y);
-
-                GUI.color = s_ScriptableFSM.dynamicFSM.currentState == s_ScriptableFSM.dynamicFSM.states[i] ?
-                    new Color(251f / 255f, 140f / 255f, 0f, 1f) :
-                    Color.gray;
+                        m_ScriptableFSM.m_States[i].position.x,
+                        m_ScriptableFSM.m_States[i].position.y,
+                        buttonSize.x,
+                        buttonSize.y);
 
                 windowRect =
                     GUI.Window(
@@ -130,25 +147,24 @@ public partial class ScriptableFSMWindow : EditorWindow
                         windowRect,
                         DrawNodeWindow,
                         "",
-                        s_GUISkin.button);
+                        m_GUISkin.button);
 
-                s_ScriptableFSM.windowPositions[i] = new Vector2(windowRect.x, windowRect.y);
+                m_ScriptableFSM.m_States[i].position = new Vector2(windowRect.x, windowRect.y);
             }
         }
         EndWindows();
 
         Handles.BeginGUI();
         {
-            if (s_AddingTransition)
+            if (m_AddingTransition)
             {
-                int index = s_ScriptableFSM.dynamicFSM.states.FindIndex(x => x == s_TransitionAnchor);
                 Vector2 linePosition =
                     new Vector2(
-                        s_ScriptableFSM.windowPositions[index].x + s_BoxSize.x / 2f,
-                        s_ScriptableFSM.windowPositions[index].y + s_BoxSize.y / 2f);
+                        m_TransitionAnchor.position.x + m_StateButtonSize.x / 2f,
+                        m_TransitionAnchor.position.y + m_StateButtonSize.y / 2f);
 
                 Handles.color = Color.white;
-                Handles.DrawAAPolyLine(2f, linePosition, Event.current.mousePosition);
+                Handles.DrawAAPolyLine(2.5f, linePosition, Event.current.mousePosition);
             }
         }
         Handles.EndGUI();
@@ -158,21 +174,22 @@ public partial class ScriptableFSMWindow : EditorWindow
             case EventType.ContextClick:
                 {
                     CreateGeneralContextMenu();
-                    s_ContextMenu.ShowAsContext();
+                    m_ContextMenu.ShowAsContext();
                 }
                 break;
             case EventType.MouseDown:
                 {
                     if (Event.current.button == 0)
                     {
-                        s_AddingTransition = false;
+                        Selection.activeObject = m_ScriptableFSM;
+                        m_AddingTransition = false;
                         Repaint();
                     }
                 }
                 break;
         }
 
-        s_MousePosition = Event.current.mousePosition;
+        m_MousePosition = Event.current.mousePosition;
     }
 
     private void DrawNodeWindow(int a_WindowID)
@@ -181,47 +198,50 @@ public partial class ScriptableFSMWindow : EditorWindow
         {
             case EventType.MouseDown:
                 {
-                    if ((Event.current.button == 1 || Event.current.button == 0) && !s_AddingTransition)
+                    if ((Event.current.button == 1 || Event.current.button == 0) && !m_AddingTransition)
                     {
-                        Selection.activeObject = s_ScriptableFSM;
-                        s_FocusedState = a_WindowID;
+                        Selection.activeObject = m_ScriptableFSM.m_States[a_WindowID];
 
                         if (repaintEvent != null)
                             repaintEvent();
                     }
                     if (Event.current.button == 1)
                     {
-                        if (!s_AddingTransition)
+                        if (!m_AddingTransition)
                         {
-                            CreateWindowContextMenu(a_WindowID);
-                            s_ContextMenu.ShowAsContext();
+                            CreateWindowContextMenu(m_ScriptableFSM.m_States[a_WindowID]);
+                            m_ContextMenu.ShowAsContext();
                         }
                         else
-                            s_AddingTransition = false;
+                            m_AddingTransition = false;
                     }
-                    if (Event.current.button == 0 && s_AddingTransition)
+                    if (Event.current.button == 0 && m_AddingTransition)
                     {
-                        s_ScriptableFSM.dynamicFSM.AddTransition(
-                            s_TransitionAnchor,
-                            s_ScriptableFSM.dynamicFSM.states[a_WindowID]);
+                        m_TransitionAnchor.AddTransition(
+                            m_ScriptableFSM.m_States[a_WindowID]);
 
-                        s_AddingTransition = false;
+                        m_AddingTransition = false;
                     }
                 }
                 break;
         }
-        GUIStyle newStyle = GUI.skin.GetStyle("Label");
-        newStyle.alignment = TextAnchor.MiddleCenter;
+        var newStyle = new GUIStyle(GUI.skin.GetStyle("Label"))
+        {
+            alignment = TextAnchor.MiddleCenter,
+            normal = { textColor = Color.white },
+        };
         GUI.color = Color.white;
-        GUI.Label(new Rect(Vector2.zero, s_BoxSize), s_ScriptableFSM.dynamicFSM.states[a_WindowID], newStyle);
-        newStyle.alignment = TextAnchor.UpperLeft;
+        GUI.Label(
+            new Rect(Vector2.zero, m_StateButtonSize),
+            m_ScriptableFSM.m_States[a_WindowID].displayName,
+            newStyle);
 
         GUI.DragWindow();
     }
 
     private void Update()
     {
-        if (s_AddingTransition)
+        if (m_AddingTransition)
             Repaint();
     }
 
@@ -284,97 +304,78 @@ public partial class ScriptableFSMWindow : EditorWindow
         Handles.EndGUI();
     }
 
-    private static void AddState(object a_Obj)
+    private void AddState()
     {
-        s_ScriptableFSM.dynamicFSM.AddState();
-        s_ScriptableFSM.windowPositions.Add(s_MousePosition);
+        m_ScriptableFSM.AddState(a_Position: m_MousePosition);
 
-        EditorUtility.SetDirty(s_ScriptableFSM);
-    }
-    private static void RemoveState(object a_Obj)
-    {
-        string state = s_ScriptableFSM.dynamicFSM.states[(int)a_Obj];
-
-        s_ScriptableFSM.windowPositions.RemoveAt((int)a_Obj);
-        s_ScriptableFSM.dynamicFSM.RemoveState(state);
-
-        if ((int)a_Obj == s_FocusedState)
-            Selection.activeObject = null;
-
-        EditorUtility.SetDirty(s_ScriptableFSM);
-        AssetDatabase.Refresh();
-
-    }
-
-    private static void AddTransition(object a_Obj)
-    {
-        s_AddingTransition = true;
-        s_TransitionAnchor = s_ScriptableFSM.dynamicFSM.states[(int)a_Obj];
-
-        EditorUtility.SetDirty(s_ScriptableFSM);
+        EditorUtility.SetDirty(m_ScriptableFSM);
         AssetDatabase.Refresh();
     }
-    private static void RemoveTransition(object a_Obj)
+    private void RemoveState(object a_Obj)
     {
-        s_ScriptableFSM.dynamicFSM.RemoveTransition((string)a_Obj);
+        m_ScriptableFSM.RemoveState((FSMState)a_Obj);
 
-        EditorUtility.SetDirty(s_ScriptableFSM);
+        EditorUtility.SetDirty(m_ScriptableFSM);
         AssetDatabase.Refresh();
     }
 
-
-    private static void CreateGeneralContextMenu()
+    private void AddTransition(object a_Obj)
     {
-        s_ContextMenu = new GenericMenu();
-        s_ContextMenu.AddItem(new GUIContent("Create/New State"), false, AddState, null);
+        m_AddingTransition = true;
+        m_TransitionAnchor = a_Obj as FSMState;
+
+        EditorUtility.SetDirty(m_ScriptableFSM);
+        AssetDatabase.Refresh();
+    }
+    private void RemoveTransition(object a_Obj)
+    {
+        FSMTransition transition = a_Obj as FSMTransition;
+
+        transition.state.fromState.RemoveTransition(transition);
+
+        EditorUtility.SetDirty(m_ScriptableFSM);
+        AssetDatabase.Refresh();
     }
 
-    private static void CreateWindowContextMenu(int a_ID)
+    private void CreateGeneralContextMenu()
     {
-        s_ContextMenu = new GenericMenu();
+        m_ContextMenu = new GenericMenu();
+        m_ContextMenu.AddItem(new GUIContent("Create/New State"), false, AddState);
+    }
 
-        s_ContextMenu.AddItem(new GUIContent("Add/Transition"), false, AddTransition, a_ID);
-        s_ContextMenu.AddItem(
-            new GUIContent("Delete/'" + s_ScriptableFSM.dynamicFSM.states[a_ID] + "'"),
+    private void CreateWindowContextMenu(FSMState a_State)
+    {
+        m_ContextMenu = new GenericMenu();
+
+        m_ContextMenu.AddItem(new GUIContent("Add/Transition"), false, AddTransition, a_State);
+        m_ContextMenu.AddItem(
+            new GUIContent("Delete/'" + a_State.displayName + "'"),
             false,
             RemoveState,
-            a_ID);
+            a_State);
 
-        if (s_ScriptableFSM.dynamicFSM.transitions.Count != 0)
+        if (a_State.transitions.Count == 0)
+            return;
+
+        foreach (var transition in a_State.transitions)
         {
-            foreach (string transition in s_ScriptableFSM.dynamicFSM.transitions)
-            {
-                string[] states = DynamicFSM.ParseStates(transition);
-
-                if (states[0] == s_ScriptableFSM.dynamicFSM.states[a_ID])
-                    s_ContextMenu.AddItem(
-                        new GUIContent("Delete/Transition/" + "To '" + states[1] + "'"),
-                        false,
-                        RemoveTransition,
-                        transition);
-                else if (states[1] == s_ScriptableFSM.dynamicFSM.states[a_ID])
-                    s_ContextMenu.AddItem(
-                        new GUIContent("Delete/Transition/" + "From '" + states[0] + "'"),
-                        false,
-                        RemoveTransition,
-                        transition);
-            }
+            m_ContextMenu.AddItem(
+                new GUIContent("Delete/Transition/" + "To '" + transition.state.toState.displayName + "'"),
+                false,
+                RemoveTransition,
+                transition);
         }
     }
 
-    private static void SetReferencedDynamicFSM()
+    private void SetReferencedDynamicFSM()
     {
         if (Selection.activeGameObject == null ||
             Selection.activeGameObject.GetComponent<MonoFSM>() == null ||
             Selection.activeGameObject.GetComponent<MonoFSM>().scriptableFSM == null)
             return;
 
-        s_ScriptableFSM = Selection.activeGameObject.GetComponent<MonoFSM>().scriptableFSM;
-
-        if (s_ScriptableFSM.windowPositions == null)
-            s_ScriptableFSM.windowPositions = new List<Vector2>();
-
-        s_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;
+        m_ScriptableFSM = Selection.activeGameObject.GetComponent<MonoFSM>().scriptableFSM;
+        m_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;
     }
 
     private static Vector3 ScalePosition(EditorWindow a_Window, Vector2 a_Position)

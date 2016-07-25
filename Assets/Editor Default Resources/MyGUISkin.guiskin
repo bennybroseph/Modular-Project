@@ -74,7 +74,7 @@ MonoBehaviour:
   m_button:
     m_Name: button
     m_Normal:
-      m_Background: {fileID: 2800000, guid: a791c46cf651fa240a8d3e4408a20418, type: 3}
+      m_Background: {fileID: 2800000, guid: 7a81b7a858fb28142a82136dd10d7be6, type: 3}
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
       m_Background: {fileID: 0}

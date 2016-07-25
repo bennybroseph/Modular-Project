@@ -306,9 +306,9 @@ namespace Library
             From = 2,
         }
 
-        public List<string[]> GetTransitionsOnState(string a_State, TransitionType a_Type)
+        public List<string> GetTransitionsOnState(string a_State, TransitionType a_Type)
         {
-            List<string[]> transitions = new List<string[]>();
+            List<string> transitions = new List<string>();
 
             foreach (string transition in m_Transitions)
             {
@@ -317,17 +317,17 @@ namespace Library
                 if (a_Type == (TransitionType.To | TransitionType.From))
                 {
                     if (states[0] == a_State || states[1] == a_State)
-                        transitions.Add(states);
+                        transitions.Add(transition);
                 }
                 else if (a_Type == TransitionType.To)
                 {
                     if (states[1] == a_State)
-                        transitions.Add(states);
+                        transitions.Add(transition);
                 }
                 else if (a_Type == TransitionType.From)
                 {
                     if (states[0] == a_State)
-                        transitions.Add(states);
+                        transitions.Add(transition);
                 }
             }
             return transitions;

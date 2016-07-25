@@ -115,19 +115,19 @@ public class MonoFSM : MonoBehaviour, ISerializationCallbackReceiver
     // Use this for initialization
     void Start()
     {
-        m_ScriptableFSM.dynamicFSM.Subscribe(OnCheckTransition); 
-        m_ScriptableFSM.dynamicFSM.Subscribe(OnTransitionChanged);
+        //m_ScriptableFSM.dynamicFSM.Subscribe(OnCheckTransition); 
+        //m_ScriptableFSM.dynamicFSM.Subscribe(OnTransitionChanged);
 
-        if (!EditorApplication.isPlaying)
-        {
-            if (!m_ScriptableFSM.dynamicFSM.states.Contains("Test State 1"))
-                m_ScriptableFSM.dynamicFSM.AddState("Test State 1");
-            if (!m_ScriptableFSM.dynamicFSM.states.Contains("Test State 2"))
-                m_ScriptableFSM.dynamicFSM.AddState("Test State 2");
+        //if (!EditorApplication.isPlaying)
+        //{
+        //    if (!m_ScriptableFSM.dynamicFSM.states.Contains("Test State 1"))
+        //        m_ScriptableFSM.dynamicFSM.AddState("Test State 1");
+        //    if (!m_ScriptableFSM.dynamicFSM.states.Contains("Test State 2"))
+        //        m_ScriptableFSM.dynamicFSM.AddState("Test State 2");
 
-            AddTransition("Test State 1", "Test State 2", MethodCheck);
-            AddTransition("Test State 2", "Test State 1", StaticCheck);
-        }
+        //    AddTransition("Test State 1", "Test State 2", MethodCheck);
+        //    AddTransition("Test State 2", "Test State 1", StaticCheck);
+        //}
     }
 
     // Update is called once per frame
@@ -138,12 +138,12 @@ public class MonoFSM : MonoBehaviour, ISerializationCallbackReceiver
 
     public bool AddTransition(string a_From, string a_To, IsValidCheck a_IsValidCheck)
     {
-        string transition = DynamicFSM.CreateKey(a_From, a_To);
+        //string transition = DynamicFSM.CreateKey(a_From, a_To);
 
-        if (!m_ScriptableFSM.dynamicFSM.transitions.Contains(transition))
-            return false;
+        //if (!m_ScriptableFSM.dynamicFSM.transitions.Contains(transition))
+        //    return false;
 
-        m_TransitionsWithChecks[transition] = a_IsValidCheck;
+        //m_TransitionsWithChecks[transition] = a_IsValidCheck;
         return true;
     }
 
