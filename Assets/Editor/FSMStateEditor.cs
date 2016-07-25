@@ -6,30 +6,48 @@ using System.Collections;
 [CustomEditor(typeof(FSMState))]
 public class FSMStateEditor : Editor 
 {
+	private FSMState m_State;
+
 	private ReorderableList m_ReorderableList;
 
 	private SerializedProperty m_DisplayName;
 	private SerializedProperty m_Tag;
 
+	private SerializedProperty m_FromTransitions;
+
 	void OnEnable()
 	{
 		ScriptableFSMWindow.repaintEvent += Repaint;
 
-		m_ReorderableList = new ReorderableList(serializedObject, serializedObject.FindProperty("m_FromTransitions"), true, true, false, false);
+		m_State = target as FSMState;
+
+		m_DisplayName = serializedObject.FindProperty ("m_DisplayName");
+		m_Tag = serializedObject.FindProperty ("tag");
+		m_FromTransitions = serializedObject.FindProperty ("m_FromTransitions");
+
+		m_ReorderableList = new ReorderableList(serializedObject, m_FromTransitions, true, true, false, true);
 		m_ReorderableList.drawElementCallback = DrawTransitionElement;
 		m_ReorderableList.drawHeaderCallback = 
 			(Rect rect) => 
-			{ 
+			{
 				EditorGUI.LabelField(rect, "Transitions");
 			};
-		m_DisplayName = serializedObject.FindProperty ("m_DisplayName");
-		m_Tag = serializedObject.FindProperty ("tag");
+
+		m_ReorderableList.onRemoveCallback = 
+			(ReorderableList list) => 
+			{
+				if (EditorUtility.DisplayDialog("Warning!", 
+					"Are you sure you want to delete this transition?", "Yes", "No")) 
+				{
+					var element = m_ReorderableList.serializedProperty.GetArrayElementAtIndex(m_ReorderableList.index);
+					var transitionAtIndex = element.objectReferenceValue as FSMTransition;
+					m_State.RemoveTransition(transitionAtIndex);
+				}
+			};		
 	}
 
 	public override void OnInspectorGUI ()
 	{
-		FSMState state = target as FSMState;
-
 		serializedObject.Update();
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -52,7 +70,7 @@ public class FSMStateEditor : Editor
 		}
 		serializedObject.ApplyModifiedProperties ();
 
-		state.name = m_DisplayName.stringValue;
+		m_State.name = m_DisplayName.stringValue;
 	} 
 
 	private void DrawTransitionElement(Rect a_Rect, int a_Index, bool a_IsActive, bool a_IsFocused)
