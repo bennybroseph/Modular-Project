@@ -59,7 +59,7 @@ public static class ScriptableExtension
     public static T AddChildAsset<T>(this ScriptableObject self) where T : ScriptableObject
     {
         var newChild = ScriptableObject.CreateInstance<T>();
-        newChild.hideFlags = HideFlags.HideInHierarchy;
+        //newChild.hideFlags = HideFlags.HideInHierarchy;
 
         AssetDatabase.AddObjectToAsset(newChild, self);
         AssetDatabase.SaveAssets();

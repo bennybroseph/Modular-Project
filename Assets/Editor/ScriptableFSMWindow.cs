@@ -18,9 +18,9 @@ public partial class ScriptableFSMWindow : EditorWindow
     [SerializeField]
     private Color m_NormalButtonColor = Color.gray;
     [SerializeField]
-    private Color m_EntryButtonColor = Color.green;
+	private Color m_EntryButtonColor = new Color32(76, 175, 80, 255);
     [SerializeField]
-    private Color m_AnyStateButtonColor = Color.blue;
+	private Color m_AnyStateButtonColor = new Color32(3, 169, 244, 255);
 
     private ScriptableFSM m_ScriptableFSM;
 
@@ -217,7 +217,7 @@ public partial class ScriptableFSMWindow : EditorWindow
                     }
                     if (Event.current.button == 0 && m_AddingTransition)
                     {
-                        m_TransitionAnchor.AddTransition(
+                        FSMTransition newTransition = m_TransitionAnchor.AddFromTransition(
                             m_ScriptableFSM.m_States[a_WindowID]);
 
                         m_AddingTransition = false;
@@ -231,8 +231,12 @@ public partial class ScriptableFSMWindow : EditorWindow
             normal = { textColor = Color.white },
         };
         GUI.color = Color.white;
+
+		Vector2 buttonSize = m_ScriptableFSM.m_States [a_WindowID].attribute == FSMState.Attribute.None ? 
+			m_StateButtonSize :
+			m_SpecialButtonSize;
         GUI.Label(
-            new Rect(Vector2.zero, m_StateButtonSize),
+			new Rect(Vector2.zero, buttonSize),
             m_ScriptableFSM.m_States[a_WindowID].displayName,
             newStyle);
 
@@ -262,41 +266,41 @@ public partial class ScriptableFSMWindow : EditorWindow
         Vector2 lineSpacing = new Vector2(12f, 12f);
         Handles.BeginGUI();
         {
-            Handles.color = new Color(0.175f, 0.175f, 0.175f);
+			Handles.color = new Color(93f / 255f, 93f / 255f, 93f / 255f);
             Handles.DrawAAConvexPolygon(
                 new Vector3(0, 0),
                 new Vector3(0, position.height),
                 new Vector3(position.width, position.height),
                 new Vector3(position.width, 0));
 
-            Handles.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
+            Handles.color = new Color(0f, 0f, 0f, 0.5f);
             for (int i = 0; i < position.width / lineSpacing.x; ++i)
             {
                 Handles.DrawAAPolyLine(
-                    2f,
+                    1f,
                     new Vector3(i * lineSpacing.x, 0),
                     new Vector3(i * lineSpacing.x, position.height));
             }
             for (int i = 0; i < position.width / lineSpacing.y; ++i)
             {
                 Handles.DrawAAPolyLine(
-                    2f,
+                    1f,
                     new Vector3(0, i * lineSpacing.y),
                     new Vector3(position.width, i * lineSpacing.y));
             }
 
-            Handles.color = new Color(0f, 0f, 0f, 1f);
+            Handles.color = new Color(0f, 0f, 0f, 0.6f);
             for (int i = 0; i < position.width / (lineSpacing.x * 10f); ++i)
             {
                 Handles.DrawAAPolyLine(
-                    2.5f,
+                    1f,
                     new Vector3(i * lineSpacing.x * 10f, 0),
                     new Vector3(i * lineSpacing.x * 10f, position.height));
             }
             for (int i = 0; i < position.width / (lineSpacing.y * 10f); ++i)
             {
                 Handles.DrawAAPolyLine(
-                    2.5f,
+                    1f,
                     new Vector3(0, i * lineSpacing.y * 10f),
                     new Vector3(position.width, i * lineSpacing.y * 10f));
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,17 +15,22 @@ public class FSMState : ScriptableObject
         Exit,
     }
 
+	[HideInInspector]
     public Vector2 position;
+	[HideInInspector]
     public string tag;
 
-    [SerializeField]
+	[SerializeField, HideInInspector]
     private string m_DisplayName;
-    public List<FSMTransition> m_Transitions = new List<FSMTransition>();
+	[SerializeField, HideInInspector]
+    private List<FSMTransition> m_FromTransitions = new List<FSMTransition>();
+	[SerializeField, HideInInspector]
+	private List<FSMTransition> m_ToTransitions = new List<FSMTransition>();
 
     [SerializeField, HideInInspector]
     private ScriptableFSM m_Parent;
 
-    [SerializeField]
+	[SerializeField, HideInInspector]
     private Attribute m_Attribute;
 
     public string displayName
@@ -33,7 +39,7 @@ public class FSMState : ScriptableObject
     }
     public List<FSMTransition> transitions
     {
-        get { return m_Transitions; }
+        get { return m_FromTransitions; }
     }
 
     public Attribute attribute
@@ -41,15 +47,22 @@ public class FSMState : ScriptableObject
         get { return m_Attribute; }
     }
 
-    public bool AddTransition(FSMState a_Other)
+	public FSMTransition AddFromTransition(FSMState a_Other)
     {
         var newTransition = m_Parent.AddChildAsset<FSMTransition>();
 
-        newTransition.Init(this, a_Other);
-        
-        m_Transitions.Add(newTransition);
-        return true;
+		newTransition.Init (this, a_Other);
+
+		a_Other.AddToTransition (newTransition);
+
+        m_FromTransitions.Add(newTransition);
+		return newTransition;
     }
+	public void AddToTransition(FSMTransition a_Transition)
+	{
+		m_ToTransitions.Add(a_Transition);
+	}
+
     public bool RemoveTransition(FSMTransition a_Transition)
     {
         DestroyImmediate(a_Transition, true);
@@ -70,13 +83,21 @@ public class FSMState : ScriptableObject
 
     private void OnDestroy()
     {
-        List<FSMTransition> tempList = m_Transitions.ToList();
-        foreach (var transition in tempList)
-            transition.OnStateDestroyed();
+		List<FSMTransition> tempList = m_FromTransitions.ToList();
+		foreach (var transition in tempList)
+			transition.OnStateDestroyed();
+
+		tempList = m_ToTransitions.ToList();
+		foreach (var transition in tempList)
+			transition.OnStateDestroyed();
     }
 
     public void OnTransitionDestroyed(FSMTransition a_FSMTransition)
     {
-        m_Transitions.Remove(a_FSMTransition);
+		if(m_FromTransitions.Contains(a_FSMTransition))
+        	m_FromTransitions.Remove(a_FSMTransition);
+
+		if(m_ToTransitions.Contains(a_FSMTransition))
+			m_ToTransitions.Remove(a_FSMTransition);
     }
 }

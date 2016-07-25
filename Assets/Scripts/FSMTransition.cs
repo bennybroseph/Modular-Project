@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEditor;
 
 [Serializable]
 public class FSMTransition : ScriptableObject
@@ -42,16 +43,14 @@ public class FSMTransition : ScriptableObject
             fromState = a_From,
             toState = a_To,
         };
-
+			
         name = m_State.fromState.displayName + " -> " + m_State.toState.displayName;
     }
 
     private void OnDestroy()
     {
-        if (m_State.fromState != null)
-            m_State.fromState.OnTransitionDestroyed(this);
-        if (m_State.toState != null)
-            m_State.toState.OnTransitionDestroyed(this);
+		m_State.fromState.OnTransitionDestroyed (this);
+		m_State.toState.OnTransitionDestroyed (this);
     }
 
     public void OnStateDestroyed()
