@@ -36,18 +36,15 @@ public class FSMStateEditor : Editor
 		m_ReorderableList.onRemoveCallback = 
 			(ReorderableList list) => 
 			{
-				if (EditorUtility.DisplayDialog("Warning!", 
-					"Are you sure you want to delete this transition?", "Yes", "No")) 
-				{
-					var element = m_ReorderableList.serializedProperty.GetArrayElementAtIndex(m_ReorderableList.index);
-					var transitionAtIndex = element.objectReferenceValue as FSMTransition;
-					m_State.RemoveTransition(transitionAtIndex);
-				}
+				var element = m_ReorderableList.serializedProperty.GetArrayElementAtIndex(m_ReorderableList.index);
+				var transitionAtIndex = element.objectReferenceValue as FSMTransition;
+				m_State.RemoveTransition(transitionAtIndex);
 			};		
 	}
 
 	public override void OnInspectorGUI ()
 	{		
+		DrawDefaultInspector ();
 		serializedObject.Update();
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -67,12 +64,8 @@ public class FSMStateEditor : Editor
 			EditorGUILayout.Space ();
 			if (GUILayout.Button ("Delete This State")) 
 			{
-				if (EditorUtility.DisplayDialog ("Warning!", 
-					"Are you sure you want to delete this state?", "Yes", "No")) 
-				{
-					Selection.activeObject = null;
-					DestroyImmediate (m_State, true);
-				}
+				ScriptableFSM parent = serializedObject.FindProperty ("m_Parent").objectReferenceValue as ScriptableFSM;
+				parent.RemoveState (m_State);
 			}
 
 			EditorGUILayout.Space();

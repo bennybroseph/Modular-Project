@@ -14,6 +14,8 @@ public class ScriptableFSM : ScriptableObject
 
     public List<FSMState> m_States = new List<FSMState>();
 
+	public FSMState m_EntryPoint;
+
     public bool AddState(string a_DisplayName = "New State", Vector2 a_Position = default(Vector2))
     {
         var displayName = a_DisplayName;
@@ -23,17 +25,27 @@ public class ScriptableFSM : ScriptableObject
 
         return AddState(displayName, a_Position, FSMState.Attribute.None);
     }
-    private bool AddState(string a_DisplayName, Vector2 a_Position, FSMState.Attribute a_Attribute)
+	private bool AddState(
+		string a_DisplayName, 
+		Vector2 a_Position, 
+		FSMState.Attribute a_Attribute, 
+		FSMState.AllowedTransitionType a_AllowedTransitions = FSMState.AllowedTransitionType.All,
+		int a_MaxTransitions = -1)
     {
         var newState = this.AddChildAsset<FSMState>();
 
-        newState.Init(a_DisplayName, a_Position, a_Attribute, this);
+		newState.Init(this, a_DisplayName, a_Position, a_Attribute, a_AllowedTransitions, a_MaxTransitions);
 
         m_States.Add(newState);
         return true;
     }
     public void RemoveState(FSMState a_State)
     {
+		if (!EditorUtility.DisplayDialog (
+				"Warning!", 
+			    "Are you sure you want to delete this state?", "Yes", "No"))
+			return;
+		
         DestroyImmediate(a_State, true);
     }
 
@@ -46,11 +58,17 @@ public class ScriptableFSM : ScriptableObject
             DestroyImmediate(state, true);
         m_States.Clear();
 
-        AddState("Entry", new Vector2(200f, 400f), FSMState.Attribute.Entry);
-        AddState("Any State", new Vector2(200f, 250f), FSMState.Attribute.ToAny);
+		AddState("Entry", new Vector2(200f, 400f), FSMState.Attribute.Entry, FSMState.AllowedTransitionType.From, 1);
+		AddState("Any State", new Vector2(200f, 250f), FSMState.Attribute.FromAny, FSMState.AllowedTransitionType.From);
 
         m_IsInitialized = true;
     }
+
+	private void OnDestroy()
+	{
+		if (Selection.activeObject == this)
+			Selection.activeObject = null;
+	}
 
 	public void OnStateDestroyed(FSMState a_State)
 	{

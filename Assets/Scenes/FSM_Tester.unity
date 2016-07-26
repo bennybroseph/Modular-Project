@@ -308,13 +308,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ScriptableFSM: {fileID: 11400000, guid: 597acdef531280b488bd0863da31931c, type: 2}
+  m_ScriptableFSM: {fileID: 11400000, guid: 39b31328ae908b548b6c418652786e70, type: 2}
   m_Keys:
   - Test State 1->Test State 2
   - Test State 2->Test State 1
   m_Values:
   - m_CallbackObject: {fileID: 816869085}
-    m_CallbackObjectID: 7724
+    m_CallbackObjectID: 7728
     m_CallbackObjectType: MonoFSM
     m_CallbackMethodName: MethodCheck
   - m_CallbackObject: {fileID: 0}
@@ -367,7 +367,7 @@ MonoBehaviour:
   - Test State 2->Test State 1
   m_Values:
   - m_CallbackObject: {fileID: 842376934}
-    m_CallbackObjectID: 7730
+    m_CallbackObjectID: 7734
     m_CallbackObjectType: MonoFSM
     m_CallbackMethodName: MethodCheck
   - m_CallbackObject: {fileID: 0}

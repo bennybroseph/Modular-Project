@@ -12,6 +12,9 @@ public class FSMTransition : ScriptableObject
         public FSMState toState;
     }
 
+	[SerializeField]
+	private ScriptableFSM m_Parent;
+
     [SerializeField]
     private string m_DisplayName;
 
@@ -34,8 +37,10 @@ public class FSMTransition : ScriptableObject
         get { return m_State; }
     }
 
-    public void Init(FSMState a_From, FSMState a_To, string a_DisplayName = null)
+	public void Init(ScriptableFSM a_Parent, FSMState a_From, FSMState a_To, string a_DisplayName = null)
     {
+		m_Parent = a_Parent;
+
         m_DisplayName = a_DisplayName;
 
         m_State = new TransitionState
@@ -51,6 +56,12 @@ public class FSMTransition : ScriptableObject
     {
 		m_State.fromState.OnTransitionDestroyed (this);
 		m_State.toState.OnTransitionDestroyed (this);
+
+		if (Selection.activeObject == this)
+			Selection.activeObject = null;
+		
+		if (m_State.fromState.attribute == FSMState.Attribute.Entry)
+			m_Parent.m_EntryPoint = null;
     }
 
     public void OnStateDestroyed()

@@ -11,9 +11,19 @@ public class FSMState : ScriptableObject
     {
         None,
         Entry,
-        ToAny,
+        FromAny,
         Exit,
     }
+	[Flags]
+	public enum AllowedTransitionType
+	{
+		None = 0,
+		To = 1 << 0,
+		From = 1 << 1,
+		ToSpecial = 1 << 2,
+		FromSpecial = 1 << 3,
+		All = ~0,
+	}
 
 	[HideInInspector]
     public Vector2 position;
@@ -32,6 +42,10 @@ public class FSMState : ScriptableObject
 
 	[SerializeField, HideInInspector]
     private Attribute m_Attribute;
+	[SerializeField]
+	private AllowedTransitionType m_AllowedTransitionTypes;
+	[SerializeField]
+	private int m_MaxTransitions;
 
     public string displayName
     {
@@ -46,39 +60,97 @@ public class FSMState : ScriptableObject
     {
         get { return m_Attribute; }
     }
+	public AllowedTransitionType allowedTransitionTypes 
+	{
+		get{ return m_AllowedTransitionTypes; }
+	}
 
 	public FSMTransition AddFromTransition(FSMState a_Other)
     {
+		if(!IsAllowedTransition(this, a_Other))
+			return null;
+
         var newTransition = m_Parent.AddChildAsset<FSMTransition>();
 
-		newTransition.Init (this, a_Other);
+		newTransition.Init (m_Parent, this, a_Other);
 
 		a_Other.AddToTransition (newTransition);
-
+		
         m_FromTransitions.Add(newTransition);
+				
 		return newTransition;
     }
 	public void AddToTransition(FSMTransition a_Transition)
 	{
+		if (a_Transition.state.fromState.attribute == Attribute.Entry)
+			m_Parent.m_EntryPoint = this;
+		
 		m_ToTransitions.Add(a_Transition);
 	}
 
     public bool RemoveTransition(FSMTransition a_Transition)
     {
+		if (!EditorUtility.DisplayDialog (
+			    "Warning!", 
+			    "Are you sure you want to delete this transition?", "Yes", "No"))
+			return false;
+		
         DestroyImmediate(a_Transition, true);
         return true;
     }
 
-    public void Init(string a_DisplayName, Vector2 a_Position, Attribute a_Attribute, ScriptableFSM a_Parent)
+	public static bool IsAllowedTransition(FSMState a_From, FSMState a_To)
+	{
+		if (a_From.m_MaxTransitions != -1 &&
+		   (a_From.m_FromTransitions.Count >= a_From.m_MaxTransitions ||
+			a_From.m_ToTransitions.Count >= a_From.m_MaxTransitions))
+			return false;
+
+		if (a_To.m_MaxTransitions != -1 &&
+		   (a_To.m_FromTransitions.Count >= a_To.m_MaxTransitions ||
+			a_To.m_ToTransitions.Count >= a_To.m_MaxTransitions)) 
+			return false;
+
+		if ((a_To.m_AllowedTransitionTypes & AllowedTransitionType.To) == 0)
+			return false;
+
+		if ((a_From.m_AllowedTransitionTypes & AllowedTransitionType.From) == 0)
+			return false;
+		
+		switch (a_From.m_Attribute) 
+		{
+		case Attribute.Exit:
+		case Attribute.FromAny:
+		case Attribute.Entry:
+			{
+				if ((a_To.m_AllowedTransitionTypes & AllowedTransitionType.FromSpecial) == 0)
+					return false;
+			}
+			break;
+		}
+
+		return true;
+	}
+
+	public void Init(
+		ScriptableFSM a_Parent,
+		string a_DisplayName, 
+		Vector2 a_Position, 
+		Attribute a_Attribute, 
+		AllowedTransitionType a_AllowedTransitions = AllowedTransitionType.All,
+		int a_MaxTransitions = -1)
     {
+		m_Parent = a_Parent;
+
         name = a_DisplayName;
         m_DisplayName = a_DisplayName;
 
         position = a_Position;
 
         m_Attribute = a_Attribute;
+		m_AllowedTransitionTypes = a_AllowedTransitions;
 
-        m_Parent = a_Parent;
+		m_MaxTransitions = a_MaxTransitions;
     }
 
     private void OnDestroy()
@@ -92,6 +164,12 @@ public class FSMState : ScriptableObject
 			transition.OnStateDestroyed();
 
 		m_Parent.OnStateDestroyed (this);
+
+		if (Selection.activeObject == this)
+			Selection.activeObject = null;
+		
+		if (m_Parent.m_EntryPoint == this)
+			m_Parent.m_EntryPoint = null;
     }
 
     public void OnTransitionDestroyed(FSMTransition a_FSMTransition)

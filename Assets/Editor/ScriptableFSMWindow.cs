@@ -66,7 +66,7 @@ public class ScriptableFSMWindow : EditorWindow
 
         Handles.BeginGUI();
         {
-			if (Selection.activeObject.GetType() == typeof(FSMState)) 
+			if (Selection.activeObject != null && Selection.activeObject.GetType() == typeof(FSMState)) 
 			{
 				var activeState = Selection.activeObject as FSMState;
 
@@ -96,22 +96,32 @@ public class ScriptableFSMWindow : EditorWindow
             {
                 foreach (var transition in state.transitions)
                 {
+					Vector2 fromButtonSize = transition.state.fromState.attribute == FSMState.Attribute.None ? 
+						m_StateButtonSize :
+						m_SpecialButtonSize;
+					Vector2 toButtonSize = transition.state.toState.attribute == FSMState.Attribute.None ? 
+						m_StateButtonSize :
+						m_SpecialButtonSize;	
+					
                     float radius = 5f;
                     float angle =
                         Mathf.PI / 2f + Mathf.Atan2(
-                            transition.state.toState.position.y - transition.state.fromState.position.y,
-                            transition.state.toState.position.x - transition.state.fromState.position.x);
+							(transition.state.toState.position.y + toButtonSize.y / 2f) - 
+							(transition.state.fromState.position.y + fromButtonSize.y / 2f),
+							(transition.state.toState.position.x + toButtonSize.x / 2f) - 
+							(transition.state.fromState.position.x + fromButtonSize.x / 2f));									
+					
                     List<Vector2> linePositions = new List<Vector2>
                     {
                         new Vector2(
-                            transition.state.fromState.position.x + m_StateButtonSize.x / 2f
+							transition.state.fromState.position.x + fromButtonSize.x / 2f
                             + radius * Mathf.Cos(angle),
-                            transition.state.fromState.position.y + m_StateButtonSize.y / 2f
+							transition.state.fromState.position.y + fromButtonSize.y / 2f
                             + radius * Mathf.Sin(angle)),
                         new Vector2(
-                            transition.state.toState.position.x + m_StateButtonSize.x / 2f
+							transition.state.toState.position.x + toButtonSize.x / 2f
                             + radius * Mathf.Cos(angle),
-                            transition.state.toState.position.y + m_StateButtonSize.y / 2f
+							transition.state.toState.position.y + toButtonSize.y / 2f
                             + radius * Mathf.Sin(angle))
                     };
 					Handles.color = Selection.activeObject == transition ? (Color)new Color32(107, 178, 255, 255) : Color.white;
@@ -126,11 +136,12 @@ public class ScriptableFSMWindow : EditorWindow
 
 					radius = 7f;
 
+					float selectionSize = radius + 5f;
 					transitionLineRects.Add (
 						transition,
 						new Rect (
-							new Vector2 (between.x - radius / 2, between.y - radius / 2),
-							new Vector2 (radius, radius)));	
+							new Vector2 (between.x - selectionSize / 2, between.y - selectionSize / 2),
+							new Vector2 (selectionSize, selectionSize)));
 
                     Handles.DrawAAConvexPolygon(
                         new Vector3(
@@ -162,7 +173,7 @@ public class ScriptableFSMWindow : EditorWindow
                         GUI.color = m_EntryButtonColor;
                         buttonSize = m_SpecialButtonSize;
                         break;
-                    case FSMState.Attribute.ToAny:
+                    case FSMState.Attribute.FromAny:
                         GUI.color = m_AnyStateButtonColor;
                         buttonSize = m_SpecialButtonSize;
                         break;
@@ -174,6 +185,9 @@ public class ScriptableFSMWindow : EditorWindow
                         m_ScriptableFSM.m_States[i].position.y,
                         buttonSize.x,
                         buttonSize.y);
+
+				if (m_ScriptableFSM.m_EntryPoint == m_ScriptableFSM.m_States[i])
+					GUI.color = new Color32 (255, 152, 0, 255);
 				
                 windowRect =
                     GUI.Window(
