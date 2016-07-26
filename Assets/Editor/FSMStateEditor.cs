@@ -64,19 +64,20 @@ public class FSMStateEditor : Editor
 			}
 			EditorGUILayout.EndHorizontal ();
 
-			EditorGUILayout.Space();
-			m_ReorderableList.DoLayoutList();
-			EditorGUILayout.Space();
-
+			EditorGUILayout.Space ();
 			if (GUILayout.Button ("Delete This State")) 
 			{
 				if (EditorUtility.DisplayDialog ("Warning!", 
-					    "Are you sure you want to delete this state?", "Yes", "No")) 
+					"Are you sure you want to delete this state?", "Yes", "No")) 
 				{
 					Selection.activeObject = null;
 					DestroyImmediate (m_State, true);
 				}
 			}
+
+			EditorGUILayout.Space();
+			m_ReorderableList.DoLayoutList();
+			EditorGUILayout.Space();
 		}
 		if (m_State == null)
 			return;

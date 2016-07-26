@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Library;
 
 
-public partial class ScriptableFSMWindow : EditorWindow
+public class ScriptableFSMWindow : EditorWindow
 {
     public delegate void RepaintEvent();
     public static event RepaintEvent repaintEvent;
@@ -62,6 +62,8 @@ public partial class ScriptableFSMWindow : EditorWindow
         if (m_ScriptableFSM == null)
             return;
 
+		Dictionary<FSMTransition, Rect> transitionLineRects = new Dictionary<FSMTransition, Rect>();
+
         Handles.BeginGUI();
         {
 			if (Selection.activeObject.GetType() == typeof(FSMState)) 
@@ -70,18 +72,23 @@ public partial class ScriptableFSMWindow : EditorWindow
 
 				float width = 5f;
 				Handles.color = new Color(1, 1, 1, 0.2f);
+
+				Vector2 buttonSize = activeState.attribute == FSMState.Attribute.None ? 
+					m_StateButtonSize :
+					m_SpecialButtonSize;
+				
 				Handles.DrawAAConvexPolygon(
 					new Vector3(
 						activeState.position.x - width,
 						activeState.position.y - width),
 					new Vector3(
 						activeState.position.x - width,
-						activeState.position.y + m_StateButtonSize.y + width),
+						activeState.position.y + buttonSize.y + width),
 					new Vector3(
-						activeState.position.x + m_StateButtonSize.x + width,
-						activeState.position.y + m_StateButtonSize.y + width),
+						activeState.position.x + buttonSize.x + width,
+						activeState.position.y + buttonSize.y + width),
 					new Vector3(
-						activeState.position.x + m_StateButtonSize.x + width,
+						activeState.position.x + buttonSize.x + width,
 						activeState.position.y - width));			
 			}
 
@@ -107,8 +114,7 @@ public partial class ScriptableFSMWindow : EditorWindow
                             transition.state.toState.position.y + m_StateButtonSize.y / 2f
                             + radius * Mathf.Sin(angle))
                     };
-
-                    Handles.color = Color.white;
+					Handles.color = Selection.activeObject == transition ? (Color)new Color32(107, 178, 255, 255) : Color.white;
                     Handles.DrawAAPolyLine(2.5f, linePositions[0], linePositions[1]);
 
                     Vector2 between =
@@ -118,7 +124,14 @@ public partial class ScriptableFSMWindow : EditorWindow
                     between /= 2f;
                     between += linePositions[0];
 
-                    radius = 7f;
+					radius = 7f;
+
+					transitionLineRects.Add (
+						transition,
+						new Rect (
+							new Vector2 (between.x - radius / 2, between.y - radius / 2),
+							new Vector2 (radius, radius)));	
+
                     Handles.DrawAAConvexPolygon(
                         new Vector3(
                             between.x + (radius - 2f) * Mathf.Cos(angle + 3 * Mathf.PI / 2),
@@ -161,7 +174,7 @@ public partial class ScriptableFSMWindow : EditorWindow
                         m_ScriptableFSM.m_States[i].position.y,
                         buttonSize.x,
                         buttonSize.y);
-
+				
                 windowRect =
                     GUI.Window(
                         i,
@@ -202,9 +215,21 @@ public partial class ScriptableFSMWindow : EditorWindow
                 {
                     if (Event.current.button == 0)
                     {
+						bool clickedTransition = false;
+						foreach (var transitionRect in transitionLineRects) 
+						{
+							if (transitionRect.Value.Contains (Event.current.mousePosition)) 
+							{
+								Selection.activeObject = transitionRect.Key;
+								clickedTransition = true;								
+							}
+						}
+						
+						if (clickedTransition)
+							break;
+						
                         Selection.activeObject = m_ScriptableFSM;
                         m_AddingTransition = false;
-                        Repaint();
                     }
                 }
                 break;
@@ -385,7 +410,7 @@ public partial class ScriptableFSMWindow : EditorWindow
         foreach (var transition in a_State.transitions)
         {
             m_ContextMenu.AddItem(
-                new GUIContent("Delete/Transition/" + "To '" + transition.state.toState.displayName + "'"),
+                new GUIContent("Delete/Transition/" + "'" + transition.displayName + "'"),
                 false,
                 RemoveTransition,
                 transition);
