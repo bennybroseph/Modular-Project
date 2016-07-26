@@ -291,7 +291,7 @@ GameObject:
   - 4: {fileID: 816869086}
   - 114: {fileID: 816869085}
   m_Layer: 0
-  m_Name: FSM 1
+  m_Name: DSM 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -308,19 +308,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ScriptableFSM: {fileID: 11400000, guid: 39b31328ae908b548b6c418652786e70, type: 2}
-  m_Keys:
-  - Test State 1->Test State 2
-  - Test State 2->Test State 1
-  m_Values:
-  - m_CallbackObject: {fileID: 816869085}
-    m_CallbackObjectID: 7728
-    m_CallbackObjectType: MonoFSM
-    m_CallbackMethodName: MethodCheck
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectID: -1
-    m_CallbackObjectType: MonoFSM
-    m_CallbackMethodName: StaticCheck
+  m_DSMObject: {fileID: 11400000, guid: 4d2a203c1229bdb40abcad7ca5062bb9, type: 2}
+  m_Keys: []
+  m_Values: []
 --- !u!4 &816869086
 Transform:
   m_ObjectHideFlags: 0
@@ -344,7 +334,7 @@ GameObject:
   - 4: {fileID: 842376935}
   - 114: {fileID: 842376934}
   m_Layer: 0
-  m_Name: FSM 2
+  m_Name: DSM 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -361,19 +351,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69bf0f170781804c920a5c1a5376a29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ScriptableFSM: {fileID: 0}
-  m_Keys:
-  - Test State 1->Test State 2
-  - Test State 2->Test State 1
-  m_Values:
-  - m_CallbackObject: {fileID: 842376934}
-    m_CallbackObjectID: 7734
-    m_CallbackObjectType: MonoFSM
-    m_CallbackMethodName: MethodCheck
-  - m_CallbackObject: {fileID: 0}
-    m_CallbackObjectID: -1
-    m_CallbackObjectType: MonoFSM
-    m_CallbackMethodName: StaticCheck
+  m_DSMObject: {fileID: 0}
+  m_Keys: []
+  m_Values: []
 --- !u!4 &842376935
 Transform:
   m_ObjectHideFlags: 0
