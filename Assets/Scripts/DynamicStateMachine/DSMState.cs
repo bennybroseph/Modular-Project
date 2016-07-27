@@ -159,5 +159,16 @@ namespace DynamicStateMachine
 			if(m_ToTransitions.Contains(a_DSMTransition))
 				m_ToTransitions.Remove(a_DSMTransition);
 	    }
+
+		public DSMState Clone()
+		{
+			var newState = MemberwiseClone () as DSMState;
+
+			newState.m_FromTransitions = new List<DSMTransition>();
+			foreach (var transition in m_FromTransitions)
+				newState.m_FromTransitions.Add (transition.Clone (newState));
+
+			return newState;
+		}
 	}
 }

@@ -23,6 +23,15 @@ namespace DynamicStateMachine
 			get { return m_CurrentState as IDSMState; }
 	    }	    
 
+		private void OnValidate()
+		{
+			if (m_DSMObject == null)
+				return;
+
+			m_CurrentState = m_DSMObject.entryPoint as DSMState;
+			m_DSMObject.entryPointChanged.AddListener (OnEntryPointChanged);
+		}
+
 		protected override void OnEditorStart()
 		{
 			if (m_DSMObject == null)

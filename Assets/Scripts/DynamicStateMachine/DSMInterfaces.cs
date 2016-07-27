@@ -23,6 +23,8 @@ namespace DynamicStateMachine
 	public interface IDrawableDSMObject : IDSMObject
 	{
 		List<IDrawableDSMState> drawableStates { get; }
+
+		IDrawableDSMObject Clone ();
 	}
 
 	public enum StateAttribute

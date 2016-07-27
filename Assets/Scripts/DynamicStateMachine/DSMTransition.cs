@@ -69,5 +69,12 @@ namespace DynamicStateMachine
 	    {
 	        DestroyImmediate(this, true);
 	    }
+
+		public DSMTransition Clone(DSMState a_State)
+		{
+			var newTransition = MemberwiseClone () as DSMTransition;
+
+			return newTransition;
+		}
 	}
 }

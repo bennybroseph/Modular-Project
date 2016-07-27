@@ -24,6 +24,8 @@ namespace DynamicStateMachine
 		private Color m_EntryButtonColor = new Color32(76, 175, 80, 255);
 	    [SerializeField]
 		private Color m_AnyStateButtonColor = new Color32(3, 169, 244, 255);
+		[SerializeField]
+		private Color m_ExitStateButtonColor = new Color32 (175, 20, 20, 255);
 
 		private IMonoDSM m_MonoDSM;
 		private IDrawableDSMObject m_DSMObject;
@@ -184,6 +186,10 @@ namespace DynamicStateMachine
 	                        GUI.color = m_AnyStateButtonColor;
 	                        buttonSize = m_SpecialButtonSize;
 	                        break;
+						case StateAttribute.Exit:
+							GUI.color = m_ExitStateButtonColor;
+							buttonSize = m_SpecialButtonSize;
+						break;
 	                }
 
 	                Rect windowRect =
@@ -432,8 +438,8 @@ namespace DynamicStateMachine
 	            return;
 
 			m_MonoDSM = Selection.activeGameObject.GetComponent<IMonoDSM>();
-			m_DSMObject = (EditorApplication.isPlaying) ?
-				Instantiate(m_MonoDSM.dsmObject as ScriptableObject) as IDrawableDSMObject:
+			m_DSMObject =// EditorApplication.isPlaying ? 
+				//(m_MonoDSM.dsmObject as IDrawableDSMObject).Clone ():
 				m_MonoDSM.dsmObject as IDrawableDSMObject;
 
 	        m_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;

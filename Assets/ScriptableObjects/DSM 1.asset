@@ -16,38 +16,16 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
-  m_EntryPoint: {fileID: 11475402}
+  m_EntryPoint: {fileID: 11411332}
   m_IsInitialized: 1
   m_States:
-  - {fileID: 11441328}
-  - {fileID: 11474460}
-  - {fileID: 11475402}
-  - {fileID: 11401644}
-  - {fileID: 11465964}
---- !u!114 &11401644
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
-  m_Name: Walk
-  m_EditorClassIdentifier: 
-  m_Position: {x: 422, y: 498}
-  m_Tag: 
-  m_DisplayName: Walk
-  m_FromTransitions:
-  - {fileID: 11477898}
-  - {fileID: 11411780}
-  m_ToTransitions:
-  - {fileID: 11499706}
-  m_Parent: {fileID: 11400000}
-  m_Attribute: 0
-  m_AllowedTransitionTypes: -1
-  m_MaxTransitions: -1
---- !u!114 &11411780
+  - {fileID: 11484296}
+  - {fileID: 11490108}
+  - {fileID: 11434214}
+  - {fileID: 11469218}
+  - {fileID: 11411332}
+  - {fileID: 11495962}
+--- !u!114 &11403392
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -56,13 +34,124 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Walk -> Run
+  m_Name: New State 1 -> Exit
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 11400000}
   m_DisplayName: 
-  m_From: {fileID: 11401644}
-  m_To: {fileID: 11465964}
---- !u!114 &11441328
+  m_From: {fileID: 11495962}
+  m_To: {fileID: 11434214}
+--- !u!114 &11411332
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
+  m_Name: New State 0
+  m_EditorClassIdentifier: 
+  m_Position: {x: 411, y: 341}
+  m_Tag: 
+  m_DisplayName: New State 0
+  m_FromTransitions:
+  - {fileID: 11442804}
+  m_ToTransitions:
+  - {fileID: 11439034}
+  m_Parent: {fileID: 11400000}
+  m_Attribute: 0
+  m_AllowedTransitionTypes: -1
+  m_MaxTransitions: -1
+--- !u!114 &11421518
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: New State -> Exit
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 11400000}
+  m_DisplayName: 
+  m_From: {fileID: 11469218}
+  m_To: {fileID: 11434214}
+--- !u!114 &11434214
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
+  m_Name: Exit
+  m_EditorClassIdentifier: 
+  m_Position: {x: 812, y: 342}
+  m_Tag: 
+  m_DisplayName: Exit
+  m_FromTransitions: []
+  m_ToTransitions:
+  - {fileID: 11421518}
+  - {fileID: 11442804}
+  - {fileID: 11403392}
+  m_Parent: {fileID: 11400000}
+  m_Attribute: 3
+  m_AllowedTransitionTypes: 1
+  m_MaxTransitions: -1
+--- !u!114 &11439034
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: Entry -> New State 0
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 11400000}
+  m_DisplayName: 
+  m_From: {fileID: 11484296}
+  m_To: {fileID: 11411332}
+--- !u!114 &11442804
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: New State 0 -> Exit
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 11400000}
+  m_DisplayName: 
+  m_From: {fileID: 11411332}
+  m_To: {fileID: 11434214}
+--- !u!114 &11469218
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
+  m_Name: New State
+  m_EditorClassIdentifier: 
+  m_Position: {x: 467, y: 445}
+  m_Tag: 
+  m_DisplayName: New State
+  m_FromTransitions:
+  - {fileID: 11421518}
+  m_ToTransitions: []
+  m_Parent: {fileID: 11400000}
+  m_Attribute: 0
+  m_AllowedTransitionTypes: -1
+  m_MaxTransitions: -1
+--- !u!114 &11484296
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -73,54 +162,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Entry
   m_EditorClassIdentifier: 
-  m_Position: {x: 175, y: 393}
+  m_Position: {x: 200, y: 397}
   m_Tag: 
   m_DisplayName: Entry
   m_FromTransitions:
-  - {fileID: 11494812}
+  - {fileID: 11439034}
   m_ToTransitions: []
   m_Parent: {fileID: 11400000}
   m_Attribute: 1
   m_AllowedTransitionTypes: 2
   m_MaxTransitions: 1
---- !u!114 &11465964
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
-  m_Name: Run
-  m_EditorClassIdentifier: 
-  m_Position: {x: 898, y: 374}
-  m_Tag: 
-  m_DisplayName: Run
-  m_FromTransitions: []
-  m_ToTransitions:
-  - {fileID: 11411780}
-  - {fileID: 11470878}
-  m_Parent: {fileID: 11400000}
-  m_Attribute: 0
-  m_AllowedTransitionTypes: -1
-  m_MaxTransitions: -1
---- !u!114 &11470878
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Idle -> Run
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 11400000}
-  m_DisplayName: 
-  m_From: {fileID: 11475402}
-  m_To: {fileID: 11465964}
---- !u!114 &11474460
+--- !u!114 &11490108
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -131,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Any State
   m_EditorClassIdentifier: 
-  m_Position: {x: 32, y: 321}
+  m_Position: {x: 204, y: 249}
   m_Tag: 
   m_DisplayName: Any State
   m_FromTransitions: []
@@ -140,22 +192,7 @@ MonoBehaviour:
   m_Attribute: 2
   m_AllowedTransitionTypes: 2
   m_MaxTransitions: -1
---- !u!114 &11474690
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_DisplayName: 
-  m_From: {fileID: 0}
-  m_To: {fileID: 0}
---- !u!114 &11475402
+--- !u!114 &11495962
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -164,63 +201,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
-  m_Name: Idle
+  m_Name: New State 1
   m_EditorClassIdentifier: 
-  m_Position: {x: 422, y: 203}
+  m_Position: {x: 460, y: 265}
   m_Tag: 
-  m_DisplayName: Idle
+  m_DisplayName: New State 1
   m_FromTransitions:
-  - {fileID: 11499706}
-  - {fileID: 11470878}
-  m_ToTransitions:
-  - {fileID: 11477898}
-  - {fileID: 11494812}
+  - {fileID: 11403392}
+  m_ToTransitions: []
   m_Parent: {fileID: 11400000}
   m_Attribute: 0
   m_AllowedTransitionTypes: -1
   m_MaxTransitions: -1
---- !u!114 &11477898
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Walk -> Idle
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 11400000}
-  m_DisplayName: 
-  m_From: {fileID: 11401644}
-  m_To: {fileID: 11475402}
---- !u!114 &11494812
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Entry -> Idle
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 11400000}
-  m_DisplayName: 
-  m_From: {fileID: 11441328}
-  m_To: {fileID: 11475402}
---- !u!114 &11499706
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Idle -> Walk
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 11400000}
-  m_DisplayName: 
-  m_From: {fileID: 11475402}
-  m_To: {fileID: 11401644}

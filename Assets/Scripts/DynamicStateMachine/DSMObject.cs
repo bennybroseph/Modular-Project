@@ -109,6 +109,7 @@ namespace DynamicStateMachine
 
 			AddState("Entry", new Vector2(200f, 400f), StateAttribute.Entry, AllowedTransitionType.From, 1);
 			AddState("Any State", new Vector2(200f, 250f), StateAttribute.FromAny, AllowedTransitionType.From);
+			AddState("Exit", new Vector2(500f, 300f), StateAttribute.Exit, AllowedTransitionType.To);
 
 	        m_IsInitialized = true;
 	    }
@@ -122,6 +123,17 @@ namespace DynamicStateMachine
 		public void OnStateDestroyed(DSMState a_State)
 		{
 			m_States.Remove (a_State);
+		}
+
+		public IDrawableDSMObject Clone()
+		{
+			var newObject = MemberwiseClone() as DSMObject;
+
+			newObject.m_States = new List<DSMState>();
+			foreach (var state in m_States)
+				newObject.m_States.Add (state.Clone ());
+
+			return newObject;
 		}
 	}
 
