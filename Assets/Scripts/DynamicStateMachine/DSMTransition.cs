@@ -5,23 +5,18 @@ using UnityEditor;
 namespace DynamicStateMachine
 {
 	[Serializable]
-	public class DSMTransition : ScriptableObject
+	public class DSMTransition : ScriptableObject, IDSMTransition
 	{
-	    [Serializable]
-	    public class TransitionState
-	    {
-	        public DSMState fromState;
-	        public DSMState toState;
-	    }
-
-		[SerializeField]
+		[SerializeField, HideInInspector]
 		private DSMObject m_Parent;
 
-	    [SerializeField]
+		[SerializeField, HideInInspector]
 	    private string m_DisplayName;
 
-	    [SerializeField, HideInInspector]
-	    private TransitionState m_State;
+		[SerializeField, HideInInspector]
+		private DSMState m_From;
+		[SerializeField, HideInInspector]
+		private DSMState m_To;
 
 	    public string displayName
 	    {
@@ -29,14 +24,21 @@ namespace DynamicStateMachine
 	        {
 	            return
 	                string.IsNullOrEmpty(m_DisplayName) ?
-	                    m_State.fromState.displayName + " -> " + m_State.toState.displayName :
+						m_From.displayName + " -> " + m_To.displayName :
 	                    m_DisplayName;
 	        }
 	    }
 
-	    public TransitionState state
+	    public TransitionStates states
 	    {
-	        get { return m_State; }
+			get 
+			{ 
+				return new TransitionStates
+				{
+					fromState = m_From as IDSMState,
+					toState = m_To as IDSMState,
+				}; 
+			}
 	    }
 
 		public void Init(DSMObject a_Parent, DSMState a_From, DSMState a_To, string a_DisplayName = null)
@@ -45,25 +47,22 @@ namespace DynamicStateMachine
 
 	        m_DisplayName = a_DisplayName;
 
-	        m_State = new TransitionState
-	        {
-	            fromState = a_From,
-	            toState = a_To,
-	        };
+			m_From = a_From;
+			m_To = a_To;
 				
-	        name = m_State.fromState.displayName + " -> " + m_State.toState.displayName;
+			name = m_From.displayName + " -> " + m_To.displayName;
 	    }
 
 	    private void OnDestroy()
 	    {
-			m_State.fromState.OnTransitionDestroyed (this);
-			m_State.toState.OnTransitionDestroyed (this);
+			m_From.OnTransitionDestroyed (this);
+			m_To.OnTransitionDestroyed (this);
 
 			if (Selection.activeObject == this)
 				Selection.activeObject = null;
 			
-			if (m_State.fromState.attribute == DSMState.Attribute.Entry)
-				m_Parent.m_EntryPoint = null;
+			if (m_From.attribute == StateAttribute.Entry)
+				m_Parent.entryPoint = null;
 	    }
 
 	    public void OnStateDestroyed()

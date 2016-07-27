@@ -4,6 +4,8 @@ using UnityEditor;
 using System.Collections.Generic;
 using Library;
 
+using Object = UnityEngine.Object;
+
 namespace DynamicStateMachine
 {
 	public class DSMEditorWindow : EditorWindow
@@ -23,11 +25,12 @@ namespace DynamicStateMachine
 	    [SerializeField]
 		private Color m_AnyStateButtonColor = new Color32(3, 169, 244, 255);
 
-		private DSMObject m_DSMObject;
+		private IMonoDSM m_MonoDSM;
+		private IDrawableDSMObject m_DSMObject;
 
 	    private GenericMenu m_ContextMenu;
 
-	    private DSMState m_TransitionAnchor;
+		private IDrawableDSMState m_TransitionAnchor;
 	    private bool m_AddingTransition;
 
 	    private Vector2 m_MousePosition;
@@ -63,18 +66,18 @@ namespace DynamicStateMachine
 	        if (m_DSMObject == null)
 	            return;
 
-			Dictionary<DSMTransition, Rect> transitionLineRects = new Dictionary<DSMTransition, Rect>();
+			Dictionary<IDSMTransition, Rect> transitionLineRects = new Dictionary<IDSMTransition, Rect>();
 
 	        Handles.BeginGUI();
 	        {
-				if (Selection.activeObject != null && Selection.activeObject.GetType() == typeof(DSMState)) 
+				if (Selection.activeObject as IDrawableDSMState != null) 
 				{
-					var activeState = Selection.activeObject as DSMState;
+					var activeState = Selection.activeObject as IDrawableDSMState;
 
 					float width = 5f;
 					Handles.color = new Color(1, 1, 1, 0.2f);
 
-					Vector2 buttonSize = activeState.attribute == DSMState.Attribute.None ? 
+					Vector2 buttonSize = activeState.attribute == StateAttribute.None ? 
 						m_StateButtonSize :
 						m_SpecialButtonSize;
 					
@@ -93,36 +96,39 @@ namespace DynamicStateMachine
 							activeState.position.y - width));			
 				}
 
-	            foreach (var state in m_DSMObject.m_States)
+	            foreach (var state in m_DSMObject.states)
 	            {
 	                foreach (var transition in state.transitions)
 	                {
-						Vector2 fromButtonSize = transition.state.fromState.attribute == DSMState.Attribute.None ? 
+						var fromState = transition.states.fromState as IDrawableDSMState;
+						var toState = transition.states.toState as IDrawableDSMState;
+
+						Vector2 fromButtonSize = fromState.attribute == StateAttribute.None ? 
 							m_StateButtonSize :
 							m_SpecialButtonSize;
-						Vector2 toButtonSize = transition.state.toState.attribute == DSMState.Attribute.None ? 
+						Vector2 toButtonSize = toState.attribute == StateAttribute.None ? 
 							m_StateButtonSize :
 							m_SpecialButtonSize;	
 						
 	                    float radius = 5f;
 	                    float angle =
 	                        Mathf.PI / 2f + Mathf.Atan2(
-								(transition.state.toState.position.y + toButtonSize.y / 2f) - 
-								(transition.state.fromState.position.y + fromButtonSize.y / 2f),
-								(transition.state.toState.position.x + toButtonSize.x / 2f) - 
-								(transition.state.fromState.position.x + fromButtonSize.x / 2f));									
+								(toState.position.y + toButtonSize.y / 2f) - 
+								(fromState.position.y + fromButtonSize.y / 2f),
+								(toState.position.x + toButtonSize.x / 2f) - 
+								(fromState.position.x + fromButtonSize.x / 2f));									
 						
 	                    List<Vector2> linePositions = new List<Vector2>
 	                    {
 	                        new Vector2(
-								transition.state.fromState.position.x + fromButtonSize.x / 2f
+								fromState.position.x + fromButtonSize.x / 2f
 	                            + radius * Mathf.Cos(angle),
-								transition.state.fromState.position.y + fromButtonSize.y / 2f
+								fromState.position.y + fromButtonSize.y / 2f
 	                            + radius * Mathf.Sin(angle)),
 	                        new Vector2(
-								transition.state.toState.position.x + toButtonSize.x / 2f
+								toState.position.x + toButtonSize.x / 2f
 	                            + radius * Mathf.Cos(angle),
-								transition.state.toState.position.y + toButtonSize.y / 2f
+								toState.position.y + toButtonSize.y / 2f
 	                            + radius * Mathf.Sin(angle))
 	                    };
 						Handles.color = Selection.activeObject == transition ? (Color)new Color32(107, 178, 255, 255) : Color.white;
@@ -161,20 +167,20 @@ namespace DynamicStateMachine
 
 	        BeginWindows();
 	        {
-	            for (int i = 0; i < m_DSMObject.m_States.Count; ++i)
+	            for (int i = 0; i < m_DSMObject.states.Count; ++i)
 	            {
 	                Vector2 buttonSize = new Vector2(50f, 50f);
-	                switch (m_DSMObject.m_States[i].attribute)
+					switch (m_DSMObject.states[i].attribute)
 	                {
-	                    case DSMState.Attribute.None:
+	                    case StateAttribute.None:
 	                        GUI.color = m_NormalButtonColor;
 	                        buttonSize = m_StateButtonSize;
 	                        break;
-	                    case DSMState.Attribute.Entry:
+	                    case StateAttribute.Entry:
 	                        GUI.color = m_EntryButtonColor;
 	                        buttonSize = m_SpecialButtonSize;
 	                        break;
-	                    case DSMState.Attribute.FromAny:
+	                    case StateAttribute.FromAny:
 	                        GUI.color = m_AnyStateButtonColor;
 	                        buttonSize = m_SpecialButtonSize;
 	                        break;
@@ -182,12 +188,12 @@ namespace DynamicStateMachine
 
 	                Rect windowRect =
 	                    new Rect(
-	                        m_DSMObject.m_States[i].position.x,
-	                        m_DSMObject.m_States[i].position.y,
+							m_DSMObject.drawableStates[i].position.x,
+							m_DSMObject.drawableStates[i].position.y,
 	                        buttonSize.x,
 	                        buttonSize.y);
 
-					if (m_DSMObject.m_EntryPoint == m_DSMObject.m_States[i])
+					if (m_MonoDSM.currentState == m_DSMObject.states[i])
 						GUI.color = new Color32 (255, 152, 0, 255);
 					
 	                windowRect =
@@ -198,7 +204,7 @@ namespace DynamicStateMachine
 	                        "",
 	                        m_GUISkin.button);
 
-	                m_DSMObject.m_States[i].position = new Vector2(windowRect.x, windowRect.y);
+					m_DSMObject.drawableStates[i].position = new Vector2(windowRect.x, windowRect.y);
 	            }
 	        }
 	        EndWindows();
@@ -235,7 +241,7 @@ namespace DynamicStateMachine
 							{
 								if (transitionRect.Value.Contains (Event.current.mousePosition)) 
 								{
-									Selection.activeObject = transitionRect.Key;
+									Selection.activeObject = transitionRect.Key as Object;
 									clickedTransition = true;								
 								}
 							}
@@ -243,7 +249,7 @@ namespace DynamicStateMachine
 							if (clickedTransition)
 								break;
 							
-	                        Selection.activeObject = m_DSMObject;
+							Selection.activeObject = m_DSMObject as Object;
 	                        m_AddingTransition = false;
 	                    }
 	                }
@@ -258,33 +264,31 @@ namespace DynamicStateMachine
 	        switch (Event.current.type)
 	        {
 	            case EventType.MouseDown:
-	                {
-	                    if ((Event.current.button == 1 || Event.current.button == 0) && !m_AddingTransition)
-	                    {
-	                        Selection.activeObject = m_DSMObject.m_States[a_WindowID];
+                {
+                    if ((Event.current.button == 1 || Event.current.button == 0) && !m_AddingTransition)
+                    {
+						Selection.activeObject = m_DSMObject.states[a_WindowID] as Object;
 
-	                        if (repaintEvent != null)
-	                            repaintEvent();
-	                    }
-	                    if (Event.current.button == 1)
-	                    {
-	                        if (!m_AddingTransition)
-	                        {
-	                            CreateWindowContextMenu(m_DSMObject.m_States[a_WindowID]);
-	                            m_ContextMenu.ShowAsContext();
-	                        }
-	                        else
-	                            m_AddingTransition = false;
-	                    }
-	                    if (Event.current.button == 0 && m_AddingTransition)
-	                    {
-	                        DSMTransition newTransition = m_TransitionAnchor.AddFromTransition(
-	                            m_DSMObject.m_States[a_WindowID]);
-
-	                        m_AddingTransition = false;
-	                    }
-	                }
-	                break;
+                        if (repaintEvent != null)
+                            repaintEvent();
+                    }
+                    if (Event.current.button == 1)
+                    {
+                        if (!m_AddingTransition)
+                        {
+							CreateWindowContextMenu(m_DSMObject.states[a_WindowID]);
+                            m_ContextMenu.ShowAsContext();
+                        }
+                        else
+                            m_AddingTransition = false;
+                    }
+                    if (Event.current.button == 0 && m_AddingTransition)
+                    {
+                        m_TransitionAnchor.AddTransition(m_DSMObject.states[a_WindowID]);
+                        m_AddingTransition = false;
+                    }
+                }
+                break;
 	        }
 	        var newStyle = new GUIStyle(GUI.skin.GetStyle("Label"))
 	        {
@@ -293,12 +297,12 @@ namespace DynamicStateMachine
 	        };
 	        GUI.color = Color.white;
 
-			Vector2 buttonSize = m_DSMObject.m_States [a_WindowID].attribute == DSMState.Attribute.None ? 
+			Vector2 buttonSize = m_DSMObject.states [a_WindowID].attribute == StateAttribute.None ? 
 				m_StateButtonSize :
 				m_SpecialButtonSize;
 	        GUI.Label(
 				new Rect(Vector2.zero, buttonSize),
-	            m_DSMObject.m_States[a_WindowID].displayName,
+	            m_DSMObject.states[a_WindowID].displayName,
 	            newStyle);
 
 	        GUI.DragWindow();
@@ -306,7 +310,7 @@ namespace DynamicStateMachine
 
 	    private void Update()
 	    {
-	        if (m_AddingTransition)
+			if (m_AddingTransition || (EditorApplication.isPlaying && focusedWindow != this))
 	            Repaint();
 	    }
 
@@ -318,7 +322,7 @@ namespace DynamicStateMachine
 
 	    private void OnInspectorUpdate()
 	    {
-	        if (Selection.activeObject != null && Selection.activeObject.GetType() == typeof(DSMObject))
+	        if (Selection.activeObject != null && Selection.activeObject.GetType() == typeof(IDSMObject))
 	            Repaint();
 	    }
 
@@ -372,34 +376,22 @@ namespace DynamicStateMachine
 	    private void AddState()
 	    {
 	        m_DSMObject.AddState(a_Position: m_MousePosition);
-
-	        EditorUtility.SetDirty(m_DSMObject);
-	        AssetDatabase.Refresh();
 	    }
 	    private void RemoveState(object a_Obj)
 	    {
-	        m_DSMObject.RemoveState((DSMState)a_Obj);
-
-	        EditorUtility.SetDirty(m_DSMObject);
-	        AssetDatabase.Refresh();
+	        m_DSMObject.RemoveState((IDSMState)a_Obj);
 	    }
 
 	    private void AddTransition(object a_Obj)
 	    {
 	        m_AddingTransition = true;
-	        m_TransitionAnchor = a_Obj as DSMState;
-
-	        EditorUtility.SetDirty(m_DSMObject);
-	        AssetDatabase.Refresh();
+	        m_TransitionAnchor = a_Obj as IDrawableDSMState;
 	    }
 	    private void RemoveTransition(object a_Obj)
 	    {
-	        DSMTransition transition = a_Obj as DSMTransition;
+	        var transition = a_Obj as IDSMTransition;
 
-	        transition.state.fromState.RemoveTransition(transition);
-
-	        EditorUtility.SetDirty(m_DSMObject);
-	        AssetDatabase.Refresh();
+	        transition.states.fromState.RemoveTransition(transition);
 	    }
 
 	    private void CreateGeneralContextMenu()
@@ -408,7 +400,7 @@ namespace DynamicStateMachine
 	        m_ContextMenu.AddItem(new GUIContent("Create/New State"), false, AddState);
 	    }
 
-	    private void CreateWindowContextMenu(DSMState a_State)
+	    private void CreateWindowContextMenu(IDSMState a_State)
 	    {
 	        m_ContextMenu = new GenericMenu();
 
@@ -435,11 +427,15 @@ namespace DynamicStateMachine
 	    private void SetReferencedDSM()
 	    {
 	        if (Selection.activeGameObject == null ||
-	            Selection.activeGameObject.GetComponent<MonoDSM>() == null ||
-	            Selection.activeGameObject.GetComponent<MonoDSM>().dsmObject == null)
+	            Selection.activeGameObject.GetComponent<IMonoDSM>() == null ||
+	            Selection.activeGameObject.GetComponent<IMonoDSM>().dsmObject == null)
 	            return;
 
-			m_DSMObject = Selection.activeGameObject.GetComponent<MonoDSM>().dsmObject;
+			m_MonoDSM = Selection.activeGameObject.GetComponent<IMonoDSM>();
+			m_DSMObject = (EditorApplication.isPlaying) ?
+				Instantiate(m_MonoDSM.dsmObject as ScriptableObject) as IDrawableDSMObject:
+				m_MonoDSM.dsmObject as IDrawableDSMObject;
+
 	        m_GUISkin = EditorGUIUtility.Load("MyGUISkin.guiskin") as GUISkin;
 	    }
 

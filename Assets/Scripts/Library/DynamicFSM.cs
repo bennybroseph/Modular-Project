@@ -128,7 +128,6 @@ namespace Library
                 currentState = "";
             AddState(a_NewName, index);
 
-            var tempList = m_Transitions.ToList();
             for (int i = 0; i < m_Transitions.Count; ++i)
             {
                 string[] parsedStates = ParseStates(m_Transitions[i]);

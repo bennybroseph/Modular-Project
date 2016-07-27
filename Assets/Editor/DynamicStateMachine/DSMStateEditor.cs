@@ -19,12 +19,15 @@ namespace DynamicStateMachine
 
 		void OnEnable()
 		{
-			DSMEditorWindow.repaintEvent += Repaint;
-
 			m_State = target as DSMState;
 
+			if (m_State == null)
+				return;
+
+			DSMEditorWindow.repaintEvent += Repaint;
+
 			m_DisplayName = serializedObject.FindProperty ("m_DisplayName");
-			m_Tag = serializedObject.FindProperty ("tag");
+			m_Tag = serializedObject.FindProperty ("m_Tag");
 			m_FromTransitions = serializedObject.FindProperty ("m_FromTransitions");
 
 			m_ReorderableList = new ReorderableList(serializedObject, m_FromTransitions, true, true, false, true);
