@@ -47,26 +47,30 @@ namespace DynamicStateMachine
 		protected override void OnGameUpdate()
 		{
 			if (Input.GetAxisRaw ("Horizontal") != 0)
-				Transition ("Walk", "Idle");
+				Transition ("Walk");
 
 			if (Input.GetAxisRaw ("Vertical") != 0)
-				Transition ("Idle", "Walk");
+				Transition ("Idle");
+
+			if (Input.GetAxisRaw ("Jump") != 0)
+				Transition ("Run");
 		}
 
-		public void Transition(string a_From, string a_To)
+		public bool Transition(string a_To)
 		{
 			if (m_DSMObject == null)
-				return;
-			
-			DSMState state = m_DSMObject.states.Find (x => x.displayName == a_From) as DSMState;
-			if (state == null)
-				return;
+				return false;
 
-			DSMTransition transition = state.transitions.Find (x => x.states.toState.displayName == a_To) as DSMTransition;
+			DSMTransition transition = m_CurrentState.transitions.Find (x => x.states.toState.displayName == a_To) as DSMTransition;
 			if (transition == null)
-				return;
+				return false;
 
-			m_CurrentState = transition.states.toState as DSMState;
+			var newCurrentState = transition.states.toState as DSMState;
+			if (newCurrentState == null)
+				return false;
+
+			m_CurrentState = newCurrentState;
+			return true;
 		}
 
 		private void OnEntryPointChanged()

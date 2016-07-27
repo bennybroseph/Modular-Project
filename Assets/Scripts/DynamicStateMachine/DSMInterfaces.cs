@@ -9,7 +9,7 @@ namespace DynamicStateMachine
 		IDSMObject dsmObject { get; }
 		IDSMState currentState { get; }
 
-		void Transition(string a_From, string a_To);
+		bool Transition(string a_To);
 	}
 
 	public interface IDSMObject

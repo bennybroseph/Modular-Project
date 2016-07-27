@@ -23,6 +23,7 @@ MonoBehaviour:
   - {fileID: 11474460}
   - {fileID: 11475402}
   - {fileID: 11401644}
+  - {fileID: 11465964}
 --- !u!114 &11401644
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -34,17 +35,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Walk
   m_EditorClassIdentifier: 
-  m_Position: {x: 618, y: 487}
+  m_Position: {x: 422, y: 498}
   m_Tag: 
   m_DisplayName: Walk
   m_FromTransitions:
   - {fileID: 11477898}
-  m_ToTransitions: []
+  - {fileID: 11411780}
+  m_ToTransitions:
+  - {fileID: 11499706}
   m_Parent: {fileID: 11400000}
   m_Attribute: 0
   m_AllowedTransitionTypes: -1
   m_MaxTransitions: -1
---- !u!114 &11401728
+--- !u!114 &11411780
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -53,12 +56,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
-  m_Name: Any State -> Idle
+  m_Name: Walk -> Run
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 11400000}
   m_DisplayName: 
-  m_From: {fileID: 11474460}
-  m_To: {fileID: 11475402}
+  m_From: {fileID: 11401644}
+  m_To: {fileID: 11465964}
 --- !u!114 &11441328
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -70,7 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Entry
   m_EditorClassIdentifier: 
-  m_Position: {x: 174, y: 400}
+  m_Position: {x: 175, y: 393}
   m_Tag: 
   m_DisplayName: Entry
   m_FromTransitions:
@@ -80,6 +83,43 @@ MonoBehaviour:
   m_Attribute: 1
   m_AllowedTransitionTypes: 2
   m_MaxTransitions: 1
+--- !u!114 &11465964
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
+  m_Name: Run
+  m_EditorClassIdentifier: 
+  m_Position: {x: 898, y: 374}
+  m_Tag: 
+  m_DisplayName: Run
+  m_FromTransitions: []
+  m_ToTransitions:
+  - {fileID: 11411780}
+  - {fileID: 11470878}
+  m_Parent: {fileID: 11400000}
+  m_Attribute: 0
+  m_AllowedTransitionTypes: -1
+  m_MaxTransitions: -1
+--- !u!114 &11470878
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: Idle -> Run
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 11400000}
+  m_DisplayName: 
+  m_From: {fileID: 11475402}
+  m_To: {fileID: 11465964}
 --- !u!114 &11474460
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -91,16 +131,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Any State
   m_EditorClassIdentifier: 
-  m_Position: {x: 45, y: 351}
+  m_Position: {x: 32, y: 321}
   m_Tag: 
   m_DisplayName: Any State
-  m_FromTransitions:
-  - {fileID: 11401728}
+  m_FromTransitions: []
   m_ToTransitions: []
   m_Parent: {fileID: 11400000}
   m_Attribute: 2
   m_AllowedTransitionTypes: 2
   m_MaxTransitions: -1
+--- !u!114 &11474690
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_DisplayName: 
+  m_From: {fileID: 0}
+  m_To: {fileID: 0}
 --- !u!114 &11475402
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -112,14 +166,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380d3e18623bd9f498d6600b64d0ad64, type: 3}
   m_Name: Idle
   m_EditorClassIdentifier: 
-  m_Position: {x: 92, y: 126}
+  m_Position: {x: 422, y: 203}
   m_Tag: 
   m_DisplayName: Idle
-  m_FromTransitions: []
+  m_FromTransitions:
+  - {fileID: 11499706}
+  - {fileID: 11470878}
   m_ToTransitions:
   - {fileID: 11477898}
   - {fileID: 11494812}
-  - {fileID: 11401728}
   m_Parent: {fileID: 11400000}
   m_Attribute: 0
   m_AllowedTransitionTypes: -1
@@ -154,3 +209,18 @@ MonoBehaviour:
   m_DisplayName: 
   m_From: {fileID: 11441328}
   m_To: {fileID: 11475402}
+--- !u!114 &11499706
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5dbc07446ab1714ebd045763f899814, type: 3}
+  m_Name: Idle -> Walk
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 11400000}
+  m_DisplayName: 
+  m_From: {fileID: 11475402}
+  m_To: {fileID: 11401644}
