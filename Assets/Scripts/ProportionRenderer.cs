@@ -10,28 +10,56 @@ using Library;
 [ExecuteInEditMode]
 [RequireComponent(typeof(RectTransform), typeof(CanvasRenderer))]
 public class ProportionRenderer : ExecuteInEditor
-{
-    [Serializable]
-    private class ValueContainer
-    {
-        public string valueName;
-        public Image valueImage;
-        public string minValue;
-        public string maxValue;
+{	
+	private delegate float GetFloat();
+	[Flags]
+	public enum ValueAttribute
+	{
+		Parent = 1 << 0,
+		Delayed = 1 << 1,
+		Additive = 1 << 2,
+	}
+	[Serializable]
+	private class ValueContainer
+    {		
+		public string valueName;
+		public string minValue;
+		public string maxValue;
 
-        // 'internal' prevents variables from being show in the inspector unless Debug mode is enabled
-        internal List<Image> childImages;
+		[Space]
+		public AnimationCurve animationCurve;
 
-        internal PropertyInfo valueProperty;
-        internal bool hasProperty;
+		[Space]
+		[EnumFlag]
+		public ValueAttribute attribute;	// Cannot be the parent and also be additive
 
-        internal PropertyInfo minValueProperty;
-        internal bool hasMinProperty;
-        internal int minValueParse;
-        internal PropertyInfo maxValueProperty;
-        internal bool hasMaxProperty;
-        internal int maxValueParse;
+		[HideInNormalInspector]
+		public Image image;
+
+		// 'internal' prevents variables from being show in the inspector unless Debug mode is enabled
+		// In C# internal allows only the current assembly access to these variables
+		// In other words, the 'Editor' project isn't allowed access to it to serialize it
+		internal PropertyInfo valueProperty;
+		internal GetFloat valueDelegate;
+		internal bool hasProperty;
+
+		internal PropertyInfo minValueProperty;
+		internal bool hasMinProperty;
+		internal float minValueParse;
+		internal PropertyInfo maxValueProperty;
+		internal bool hasMaxProperty;
+		internal float maxValueParse;
+
+		internal float previousValue;
+		internal bool coroutineIsRunning;
     }
+	[SerializeField, Range(0, 100)]
+	private float m_TestingValue;
+	public float testingValue 
+	{
+		get { return m_TestingValue;}
+		set { m_TestingValue = value; } 
+	}
 
     [SerializeField]
     private Component m_Parent;
@@ -40,7 +68,7 @@ public class ProportionRenderer : ExecuteInEditor
 
     [Space]
     [SerializeField]
-    private List<ValueContainer> m_Values;
+	private List<ValueContainer> m_Values = new List<ValueContainer>();
 
     public Component parent
     {
@@ -50,36 +78,46 @@ public class ProportionRenderer : ExecuteInEditor
 
     private void OnValidate()
     {
-        foreach (var value in m_Values)
-        {
-            int result;
-
-            if (int.TryParse(value.valueName, out result) == false && value.valueName != null)
-                value.valueProperty = m_Parent.GetType().GetProperty(value.valueName);
-            else
-                value.valueProperty = null;
-
-            if (int.TryParse(value.minValue, out result) == false && value.minValue != null)
-                value.minValueProperty = m_Parent.GetType().GetProperty(value.minValue);
-            else
-            {
-                value.minValueParse = result;
-                value.minValueProperty = null;
-            }
-
-            if (int.TryParse(value.maxValue, out result) == false && value.maxValue != null)
-                value.maxValueProperty = m_Parent.GetType().GetProperty(value.maxValue);
-            else
-            {
-                value.maxValueParse = result;
-                value.maxValueProperty = null;
-            }
-
-            value.hasProperty = value.valueProperty != null;
-            value.hasMinProperty = value.minValueProperty != null;
-            value.hasMaxProperty = value.maxValueProperty != null;
-        }
+		foreach (var value in m_Values)
+			ValidateValueProperty (value);
     }
+	private void ValidateValueProperty(ValueContainer a_Value)
+	{
+		float result;
+
+		if (float.TryParse(a_Value.valueName, out result) == false && a_Value.valueName != null)
+			a_Value.valueProperty = m_Parent.GetType().GetProperty(a_Value.valueName);
+		else
+			a_Value.valueProperty = null;
+
+		if (float.TryParse(a_Value.minValue, out result) == false && a_Value.minValue != null)
+			a_Value.minValueProperty = m_Parent.GetType().GetProperty(a_Value.minValue);
+		else
+		{
+			a_Value.minValueParse = result;
+			a_Value.minValueProperty = null;
+		}
+
+		if (float.TryParse(a_Value.maxValue, out result) == false && a_Value.maxValue != null)
+			a_Value.maxValueProperty = m_Parent.GetType().GetProperty(a_Value.maxValue);
+		else
+		{
+			a_Value.maxValueParse = result;
+			a_Value.maxValueProperty = null;
+		}
+
+		a_Value.hasProperty = a_Value.valueProperty != null;
+		a_Value.hasMinProperty = a_Value.minValueProperty != null;
+		a_Value.hasMaxProperty = a_Value.maxValueProperty != null;
+
+		if(a_Value.hasProperty)
+			a_Value.valueDelegate = 
+				Delegate.CreateDelegate (typeof(GetFloat), m_Parent, a_Value.valueProperty.GetGetMethod ()) as GetFloat;
+		
+		ValueAttribute parentAdditive = ValueAttribute.Parent | ValueAttribute.Additive;
+		if((a_Value.attribute & parentAdditive) == parentAdditive)
+			a_Value.attribute ^= ValueAttribute.Parent;
+	}
 
     // Use this for initialization
     private void Awake()
@@ -87,12 +125,16 @@ public class ProportionRenderer : ExecuteInEditor
         //if (m_Values == null)
         //    m_Values = new List<ValueContainer>();
 
-        if (m_AutoUpdate && m_Values.Count > 0)
-            StartCoroutine(UpdateValues());
+		if (m_AutoUpdate && m_Values.Count > 0) 
+		{
+			StopAllCoroutines ();
+			StartCoroutine (UpdateValues ());
+		}
     }
 
     protected override void OnEditorStart()
     {
+		//OnValidate();
         Awake();
     }
     protected override void OnEditorUpdateSelected()
@@ -110,65 +152,27 @@ public class ProportionRenderer : ExecuteInEditor
 
     private void GetImages()
     {
-        var images =
-            GetComponentsInChildren<Image>().
-                Where(x => x.transform.parent == transform && x.type == Image.Type.Filled).ToArray();
+		// Remove deleted image references
+		var tempList = m_Values.ToList ();
+		foreach (var value in tempList)
+			if (value.image == null)
+				m_Values.Remove (value);
 
-        foreach (var image in images)
-        {
-            var foundImage = false;
-            foreach (var valueContainer in m_Values)
-            {
-                if (valueContainer.valueImage != image)
-                    continue;
-
-                foundImage = true;
-                break;
-            }
-            if (foundImage)
-                continue;
-
-            var newValue = new ValueContainer { valueImage = image };
-            m_Values.Add(newValue);
-        }
-
-        ValueContainer[] tempValueContainers = new ValueContainer[m_Values.Count];
-        m_Values.CopyTo(tempValueContainers);
-        foreach (var valueContainer in tempValueContainers)
-        {
-            var foundImage = false;
-            foreach (var image in images)
-            {
-                if (valueContainer.valueImage != image)
-                    continue;
-
-                foundImage = true;
-                break;
-            }
-            if (!foundImage)
-                m_Values.Remove(valueContainer);
-        }
-
-        m_Values.Sort(
-            delegate (ValueContainer a, ValueContainer b)
-            {
-                if (a.valueImage.transform.GetSiblingIndex() > b.valueImage.transform.GetSiblingIndex())
-                    return 1;
-                if (a.valueImage.transform.GetSiblingIndex() < b.valueImage.transform.GetSiblingIndex())
-                    return -1;
-                return 0;
-            });
-
-        foreach (var valueContainer in m_Values)
-        {
-            valueContainer.childImages = new List<Image>();
-            foreach (Transform child in valueContainer.valueImage.transform)
-            {
-                var childImage = child.GetComponent<Image>();
-                if (childImage != null && childImage.type == Image.Type.Filled)
-                    valueContainer.childImages.Add(childImage);
-            }
-        }
+		tempList = m_Values.ToList ();
+		foreach (var childImage in GetComponentsInChildren<Image>()) 
+		{
+			bool foundImage = false;
+			foreach (var value in tempList)
+			{
+				if (value.image == childImage) 
+				{
+					foundImage = true;
+					break;
+				}
+			}
+			if(!foundImage)
+				m_Values.Add (new ValueContainer{ image = childImage });			
+		}
     }
 
     [ContextMenu("List Properties")]
@@ -187,12 +191,13 @@ public class ProportionRenderer : ExecuteInEditor
     }
 
     private IEnumerator UpdateValues()
-    {
+    {		
         while (true)
         {
-            foreach (var value in m_Values.Where(x => x.hasProperty && x.valueImage != null))
+			foreach (var value in m_Values.Where(x => x.hasProperty && x.image != null))
             {
-                var parsedCurrentValue = (float)value.valueProperty.GetValue(m_Parent, null);
+				value.previousValue = value.image.fillAmount;
+				var parsedCurrentValue = value.valueDelegate ();
 
                 var parsedMinValue =
                     value.hasMinProperty
@@ -203,10 +208,44 @@ public class ProportionRenderer : ExecuteInEditor
                         ? (float)value.maxValueProperty.GetValue(m_Parent, null)
                         : value.maxValueParse;
 
-                value.valueImage.fillAmount =
+				value.image.fillAmount =
                     (parsedCurrentValue - parsedMinValue) / (parsedMaxValue - parsedMinValue);
             }
             yield return null;
         }
     }
+	private IEnumerator ReduceFillAmount(ValueContainer a_Value)
+	{
+//		a_Value.coroutineIsRunning = true;
+//
+//		var amountToReduce = 0f;
+//		var originalFill = m_NegativeHealthBar.fillAmount;
+//
+//		var deltaTime = 0f;
+//		while (deltaTime < a_Value.animationCurve[a_Value.animationCurve.length - 1].time)
+//		{
+//			while (m_LastHealthChange < 0.5f)
+//			{
+//				m_LastHealthChange += Time.deltaTime;
+//
+//				deltaTime = 0;
+//
+//				amountToReduce = m_NegativeHealthBar.fillAmount - m_HealthBar.fillAmount;
+//				originalFill = m_NegativeHealthBar.fillAmount;
+//
+//				yield return false;
+//			}
+//
+//			deltaTime += Time.deltaTime;
+//
+//			m_NegativeHealthBar.fillAmount =
+//				originalFill
+//				- m_BarAnimationCurve.Evaluate(deltaTime)
+//				* amountToReduce;
+//
+//			yield return false;
+//		}
+//		a_Value.coroutineIsRunning = false;
+		yield return true;
+	}
 }
