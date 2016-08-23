@@ -47,11 +47,6 @@ namespace DynamicStateMachine
 	        editor.SetReferencedDSM();
 	    }
 
-	    private DSMEditorWindow()
-	    {
-	        SetReferencedDSM();
-	    }
-
 	    private void OnFocus()
 	    {
 	        SetReferencedDSM();
