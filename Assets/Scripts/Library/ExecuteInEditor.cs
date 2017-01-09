@@ -37,7 +37,7 @@ namespace Library    // namespace denoting that this is part of the tile mapping
                 OnGameUpdate();
             // Unity is not in play mode and it is compiling without us knowing
             else if (EditorApplication.isCompiling && !m_EditorCompiling)
-                m_EditorCompiling = true;   
+                m_EditorCompiling = true;
             // Unity is not compiling, but it WAS compiling last we knew
             else if (m_EditorCompiling)
             {
@@ -48,7 +48,7 @@ namespace Library    // namespace denoting that this is part of the tile mapping
             // A game object is currently selected and that 'gameObject' is this one or this 'gameObject's parent
             else if (Selection.activeGameObject != null
                     && (Selection.activeGameObject == gameObject || Selection.activeGameObject.transform.parent == transform))
-                OnEditorUpdateSelected(); 
+                OnEditorUpdateSelected();
             // Nothing currently selected or what IS selected isn't this 'gameObject' or this 'gameObject's parent
             else
                 OnEditorUpdate();
