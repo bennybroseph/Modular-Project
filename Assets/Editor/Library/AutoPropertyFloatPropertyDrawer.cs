@@ -4,21 +4,15 @@
     using UnityEditor;
 
     [CustomPropertyDrawer(typeof(AutoPropertyFloat))]
-    public class AutoPropertyFloatPropertyDrawer : PropertyDrawer
+    public class AutoPropertyFloatPropertyDrawer : AutoPropertyGenericPropertyDrawer<float>
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        protected override float DrawDataField(Rect position, SerializedProperty property)
         {
-            var self = fieldInfo.GetValue(property.serializedObject.targetObject) as AutoPropertyFloat;
-            if (self == null)
-                return;
+            var data = property.FindPropertyRelative("m_Data");
 
-            EditorGUI.BeginProperty(position, label, property);
-            {
-                var newValue = EditorGUI.FloatField(position, property.displayName, self.value);
-                if (Mathf.Abs(self.value - newValue) > float.Epsilon)
-                    self.value = newValue;
-            }
-            EditorGUI.EndProperty();
+            return
+                EditorGUI.FloatField(
+                    position, property.displayName, data.floatValue);
         }
     }
 }

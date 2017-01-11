@@ -4,21 +4,15 @@
     using UnityEditor;
 
     [CustomPropertyDrawer(typeof(AutoPropertyInt))]
-    public class AutoPropertyIntPropertyDrawer : PropertyDrawer
+    public class AutoPropertyIntPropertyDrawer : AutoPropertyGenericPropertyDrawer<int>
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        protected override int DrawDataField(Rect position, SerializedProperty property)
         {
-            var self = fieldInfo.GetValue(property.serializedObject.targetObject) as AutoPropertyInt;
-            if (self == null)
-                return;
+            var data = property.FindPropertyRelative("m_Data");
 
-            EditorGUI.BeginProperty(position, label, property);
-            {
-                var newValue = EditorGUI.IntField(position, label, self.value);
-                if (self.value != newValue)
-                    self.value = newValue;
-            }
-            EditorGUI.EndProperty();
+            return
+                EditorGUI.IntField(
+                    position, property.displayName, data.intValue);
         }
     }
 }

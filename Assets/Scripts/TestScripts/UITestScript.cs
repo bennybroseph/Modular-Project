@@ -11,8 +11,8 @@ public class UITestScript : MonoBehaviour
         m_Text = GetComponent<Text>();
     }
 
-    public void OnValueChanged()
+    public void OnValueChanged(int newValue)
     {
-        Debug.Log("Change");
+        m_Text.text = newValue.ToString();
     }
 }
