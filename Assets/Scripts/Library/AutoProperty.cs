@@ -1,12 +1,12 @@
-﻿using System;
+﻿namespace Library
+{
+    using System;
 
 #if UNITY_5
-using UnityEngine;
-using UnityEngine.Events;
+    using UnityEngine;
+    using UnityEngine.Events;
 #endif
 
-namespace Library
-{
     [Serializable]
     public class AutoProperty<T>
     {
@@ -16,10 +16,12 @@ namespace Library
         private T m_Data;
 
 #if UNITY_5
+        [HideInInspector]
+        public T newValue;
+
         [Serializable]
         public class UnityEventGeneric : UnityEvent<T> { }
 
-        [SerializeField]
         public UnityEventGeneric onChangeEvent = new UnityEventGeneric();
 #else
         public delegate void OnChangeDelegate(T value);
@@ -32,15 +34,22 @@ namespace Library
             get { return m_Data; }
             set
             {
-                m_Data = value;
+#if UNITY_5
+                newValue = value;
+                m_Data = newValue;
 
                 if (onChangeEvent != null)
                     onChangeEvent.Invoke(value);
+#else
+                if (onChangeEvent != null)
+                    onChangeEvent.Invoke(value);
+#endif
             }
         }
     }
 
     // Useful for serialization purposes in Unity
+#if UNITY_5
     [Serializable]
     public class AutoPropertyString : AutoProperty<string> { }
 
@@ -53,4 +62,5 @@ namespace Library
     public class AutoPropertyVector2 : AutoProperty<Vector2> { }
     [Serializable]
     public class AutoPropertyVector3 : AutoProperty<Vector3> { }
+#endif
 }
