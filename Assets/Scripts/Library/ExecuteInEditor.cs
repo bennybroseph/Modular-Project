@@ -1,5 +1,8 @@
 ﻿using UnityEngine;  // Required for all 'MonoBehavior's
+
+#if UNITY_EDITOR
 using UnityEditor;  // Required for 'EditorApplication'
+#endif
 
 namespace Library    // namespace denoting that this is part of the tile mapping functionality inside the editor
 {
@@ -19,12 +22,16 @@ namespace Library    // namespace denoting that this is part of the tile mapping
         {
             m_EditorCompiling = false;
 
+#if UNITY_EDITOR
             // Unity is in play mode
             if (EditorApplication.isPlaying)
+#endif
                 OnGameStart();
+#if UNITY_EDITOR
             // Unity started up || Game stopped running
             else
                 OnEditorStart();
+#endif
         }
         /// <summary>
         /// Run automatically by Unity on 2 known conditions
@@ -33,8 +40,11 @@ namespace Library    // namespace denoting that this is part of the tile mapping
         /// </summary>
         private void Update()
         {
+#if UNITY_EDITOR
             if (EditorApplication.isPlaying)
+#endif
                 OnGameUpdate();
+#if UNITY_EDITOR
             // Unity is not in play mode and it is compiling without us knowing
             else if (EditorApplication.isCompiling && !m_EditorCompiling)
                 m_EditorCompiling = true;
@@ -52,6 +62,7 @@ namespace Library    // namespace denoting that this is part of the tile mapping
             // Nothing currently selected or what IS selected isn't this 'gameObject' or this 'gameObject's parent
             else
                 OnEditorUpdate();
+#endif
         }
 
         // Virtual Functions to be implemented by inheriting class
