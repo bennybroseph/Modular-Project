@@ -183,25 +183,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TestValueString:
     m_Data: 5
-    onChangeEvent:
+    onChangeSubEvent:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 200479126}
-          m_MethodName: OnTestValueChanged
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 1
+        m_Calls: []
       m_TypeName: Library.AutoPropertyString+UnityEventString, Assembly-CSharp, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
   m_TestValueInt:
     m_Data: 221
-    onChangeEvent:
+    onChangeSubEvent:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 1204940817}
@@ -219,21 +208,21 @@ MonoBehaviour:
         Culture=neutral, PublicKeyToken=null
   m_TestValueFloat:
     m_Data: 0
-    onChangeEvent:
+    onChangeSubEvent:
       m_PersistentCalls:
         m_Calls: []
       m_TypeName: Library.AutoPropertyFloat+UnityEventFloat, Assembly-CSharp, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
   m_TestValueVector2:
     m_Data: {x: 0, y: 0}
-    onChangeEvent:
+    onChangeSubEvent:
       m_PersistentCalls:
         m_Calls: []
       m_TypeName: Library.AutoPropertyVector2+UnityEventVector2, Assembly-CSharp,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   m_TestValueVector3:
     m_Data: {x: 0, y: 0, z: 0}
-    onChangeEvent:
+    onChangeSubEvent:
       m_PersistentCalls:
         m_Calls: []
       m_TypeName: Library.AutoPropertyVector3+UnityEventVector3, Assembly-CSharp,

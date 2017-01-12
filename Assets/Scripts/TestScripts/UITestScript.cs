@@ -13,6 +13,7 @@ public class UITestScript : MonoBehaviour
 
     public void OnValueChanged(int newValue)
     {
+        Debug.Log("Value Changed");
         m_Text.text = newValue.ToString();
     }
 }

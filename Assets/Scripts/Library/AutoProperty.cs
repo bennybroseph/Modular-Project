@@ -21,14 +21,13 @@
 
 #if UNITY_5
         public class UnityEventGeneric : UnityEvent<T> { }
-
         public UnityEventGeneric onChangeEvent = new UnityEventGeneric();
 #else
         public delegate void OnChangeDelegate(T value);
 
         public event OnChangeDelegate onChangeEvent;
 #endif
-        
+
         public T value
         {
             get { return m_Data; }
@@ -36,19 +35,10 @@
             {
                 m_Data = value;
 
-                OnChange(value);
+                if (onChangeEvent != null)
+                    onChangeEvent.Invoke(value);
             }
         }
-
-#if UNITY_5
-        protected abstract void OnChange(T newValue);
-#else
-        private void OnChange(T newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
-#endif
     }
 
     // Useful for serialization purposes in Unity
@@ -58,73 +48,48 @@
     {
         [Serializable]
         public class UnityEventString : UnityEvent<string> { }
+        public UnityEventString onChangeSubEvent = new UnityEventString();
 
-        public new UnityEventString onChangeEvent = new UnityEventString();
-
-        protected override void OnChange(string newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
+        public AutoPropertyString() { onChangeEvent.AddListener(onChangeSubEvent.Invoke); }
     }
 
     [Serializable]
-    public class AutoPropertyInt : AutoProperty<int>
+    public sealed class AutoPropertyInt : AutoProperty<int>
     {
         [Serializable]
         public class UnityEventInt : UnityEvent<int> { }
+        public UnityEventInt onChangeSubEvent = new UnityEventInt();
 
-        public new UnityEventInt onChangeEvent = new UnityEventInt();
-
-        protected override void OnChange(int newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
+        public AutoPropertyInt() { onChangeEvent.AddListener(onChangeSubEvent.Invoke); }
     }
     [Serializable]
-    public class AutoPropertyFloat : AutoProperty<float>
+    public sealed class AutoPropertyFloat : AutoProperty<float>
     {
         [Serializable]
         public class UnityEventFloat : UnityEvent<float> { }
+        public UnityEventFloat onChangeSubEvent = new UnityEventFloat();
 
-        public new UnityEventFloat onChangeEvent = new UnityEventFloat();
-
-        protected override void OnChange(float newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
+        public AutoPropertyFloat() { onChangeEvent.AddListener(onChangeSubEvent.Invoke); }
     }
 
     [Serializable]
-    public class AutoPropertyVector2 : AutoProperty<Vector2>
+    public sealed class AutoPropertyVector2 : AutoProperty<Vector2>
     {
         [Serializable]
         public class UnityEventVector2 : UnityEvent<Vector2> { }
+        public UnityEventVector2 onChangeSubEvent = new UnityEventVector2();
 
-        public new UnityEventVector2 onChangeEvent = new UnityEventVector2();
-
-        protected override void OnChange(Vector2 newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
+        public AutoPropertyVector2() { onChangeEvent.AddListener(onChangeSubEvent.Invoke); }
     }
 
     [Serializable]
-    public class AutoPropertyVector3 : AutoProperty<Vector3>
+    public sealed class AutoPropertyVector3 : AutoProperty<Vector3>
     {
         [Serializable]
         public class UnityEventVector3 : UnityEvent<Vector3> { }
+        public UnityEventVector3 onChangeSubEvent = new UnityEventVector3();
 
-        public new UnityEventVector3 onChangeEvent = new UnityEventVector3();
-
-        protected override void OnChange(Vector3 newValue)
-        {
-            if (onChangeEvent != null)
-                onChangeEvent.Invoke(newValue);
-        }
+        public AutoPropertyVector3() { onChangeEvent.AddListener(onChangeSubEvent.Invoke); }
     }
 #endif
 }

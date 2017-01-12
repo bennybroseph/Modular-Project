@@ -34,7 +34,7 @@
 
                     EditorGUI.PropertyField(
                         position,
-                        property.FindPropertyRelative("onChangeEvent"));
+                        property.FindPropertyRelative("onChangeSubEvent"));
                 }
             }
             EditorGUI.EndProperty();
@@ -46,7 +46,7 @@
 
             if (property.isExpanded)
             {
-                height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative("onChangeEvent"));
+                height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative("onChangeSubEvent"));
                 height += EditorGUIUtility.standardVerticalSpacing;
             }
 
