@@ -528,7 +528,7 @@ MonoBehaviour:
   m_AutoUpdate: 1
   m_Values:
   - parentImage: {fileID: 0}
-    usesParentValues: 0
+    useParentValues: 0
     valueName: testingValue
     minValue: 0
     maxValue: 100
@@ -541,7 +541,7 @@ MonoBehaviour:
     attribute: 0
     image: {fileID: 801510658}
   - parentImage: {fileID: 801510658}
-    usesParentValues: 1
+    useParentValues: 1
     valueName: testingValue
     minValue: 0
     maxValue: 100

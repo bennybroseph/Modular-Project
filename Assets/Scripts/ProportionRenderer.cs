@@ -24,7 +24,7 @@ public class ProportionRenderer : ExecuteInEditor
     private class ValueContainer
     {
         public Image parentImage = null;
-        public bool usesParentValues;
+        public bool useParentValues;
 
         [Space]
         public string valueName;
@@ -94,7 +94,16 @@ public class ProportionRenderer : ExecuteInEditor
         if (a_Value.parentImage != null)
             foreach (var valueContainer in m_Values)
                 if (valueContainer.image == a_Value.parentImage)
+                {
                     a_Value.parentContainer = valueContainer;
+
+                    if (!a_Value.useParentValues)
+                        continue;
+
+                    a_Value.valueName = valueContainer.valueName;
+                    a_Value.minValue = valueContainer.minValue;
+                    a_Value.maxValue = valueContainer.maxValue;
+                }
 
         float result;
 

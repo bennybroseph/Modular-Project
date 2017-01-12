@@ -1,32 +1,53 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class OldSchoolRotation : MonoBehaviour
 {
     [SerializeField]
-    private Transform m_ReferenceTransform;
+    private Transform m_CameraTransform;
 
-    private GameObject m_AnchorObject;
+    [SerializeField]
+    private float m_RotationAngle = 45f;
+    [SerializeField]
+    private float m_ClampOffset;
+    [SerializeField]
+    private float m_RotationOffset;
+
+    private Vector3 m_CurrentRotation;
 
     // Use this for initialization
     private void Awake()
     {
-        m_AnchorObject = new GameObject("New Anchor");
-
-        m_AnchorObject.transform.forward = m_ReferenceTransform.forward;
-        transform.SetParent(m_AnchorObject.transform, false);
+        m_CurrentRotation = transform.eulerAngles;
     }
 
-    // Update is called once per frame
-    private void Update()
+    private void LateUpdate()
     {
-        m_AnchorObject.transform.forward = m_ReferenceTransform.forward;
-        //transform.forward = m_ReferenceTransform.forward;
+        m_CurrentRotation = transform.eulerAngles;
 
-        var newRotationY = m_ReferenceTransform.eulerAngles.y;
-        newRotationY += (int)((newRotationY + 22.5f)/ 45f) * -45f;
+        var newRotationY = ClampAngle(m_CurrentRotation.y);
 
-        m_AnchorObject.transform.eulerAngles = new Vector3(0, newRotationY, 0);
+        var newReferenceRotationY = m_CameraTransform.eulerAngles.y;
+        newReferenceRotationY += ClampAngle(newReferenceRotationY);
 
-        //transform.forward = new Vector3();
+        transform.eulerAngles =
+            new Vector3(
+                m_CurrentRotation.x,
+                newRotationY + newReferenceRotationY + m_RotationOffset,
+                m_CurrentRotation.z);
+
+        StartCoroutine(ResetRotation());
+    }
+
+    private float ClampAngle(float angle)
+    {
+        return (int)((angle + m_ClampOffset) / m_RotationAngle) * -m_RotationAngle;
+    }
+
+    private IEnumerator ResetRotation()
+    {
+        yield return new WaitForEndOfFrame();
+
+        transform.eulerAngles = m_CurrentRotation;
     }
 }
