@@ -1,48 +1,54 @@
-﻿namespace Library
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace Library.GeneticAlgorithm
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-
-    using UnityEngine;
-
     using Random = UnityEngine.Random;
+
+    [Serializable]
+    public class Chromosome
+    {
+        public bool value;
+        public string name;
+    }
+    [Serializable]
+    public class Candidate
+    {
+        public List<Chromosome> chromosomes = new List<Chromosome>();
+    }
+    [Serializable]
+    public class Generation
+    {
+        public List<Candidate> candidates = new List<Candidate>();
+    }
+
+    [Serializable]
+    public class GeneticEquation
+    {
+        public List<Generation> generations = new List<Generation>();
+
+        public Expression expression;
+
+        public bool solved;
+    }
 
     public class GeneticSolver : MonoBehaviour
     {
-        [Serializable]
-        private class Chromosome
-        {
-            public bool value;
-            public string name;
-        }
-        [Serializable]
-        private class Candidate
-        {
-            public List<Chromosome> chromosomes = new List<Chromosome>();
-        }
-        [Serializable]
-        private class Generation
-        {
-            public List<Candidate> candidates = new List<Candidate>();
-        }
-
-        [Serializable]
-        private class GeneticEquation
-        {
-            public List<Generation> generations = new List<Generation>();
-
-            public Expression expression;
-
-            public bool solved;
-        }
+        
 
         [SerializeField]
         private ParseCNF m_ParseCNF;
 
         [SerializeField]
         private List<GeneticEquation> m_GeneticEquations = new List<GeneticEquation>();
+
+        public List<GeneticEquation> geneticEquations
+        {
+            get { return m_GeneticEquations; }
+        }
 
         // Use this for initialization
         private void Awake()
@@ -64,7 +70,7 @@
                 newGeneration.candidates.Add(new Candidate());
 
                 foreach (var candidate in newGeneration.candidates)
-                    foreach (var variable in expression.expressionObjects.OfType<Variable>())
+                    foreach (var variable in expression.GetVariables())
                         candidate.chromosomes.Add(new Chromosome
                         {
                             value = Random.Range(0, 2) == 1,
@@ -101,6 +107,8 @@
                         foreach (var chromosome in solvingCandidate.chromosomes)
                             Debug.Log(chromosome.name + " = " + chromosome.value);
 
+                        yield return new WaitForSeconds(1f);
+
                         continue;
                     }
 
@@ -127,17 +135,17 @@
         private bool Evaluate(Expression expression, Candidate candidate)
         {
             expression = expression.Copy() as Expression;
+            if (expression == null)
+                return false;
 
-            var variables = expression.expressionObjects.OfType<Variable>().ToList();
-
-            foreach (var variable in variables)
+            foreach (var variable in expression.GetVariables())
                 foreach (var chromosome in candidate.chromosomes)
                     if (chromosome.name == variable.stringValue)
                         variable.value = chromosome.value;
 
-            expression.Evaluate();
+            var result = expression.Evaluate() as Variable;
 
-            return false;
+            return (bool)result.value;
         }
     }
 }

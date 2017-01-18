@@ -20,10 +20,11 @@
     {
         public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
 
-        public void Evaluate()
+        public ExpressionObject Evaluate()
         {
-            foreach (var nestedExpression in expressionObjects.OfType<Expression>())
-                nestedExpression.Evaluate();
+            for (var i = 0; i < expressionObjects.Count; i++)
+                if (expressionObjects[i] is Expression)
+                    expressionObjects[i] = ((Expression)expressionObjects[i]).Evaluate();
 
             ExpressionObject previousObject = null;
             for (var i = 0; i < expressionObjects.Count; ++i)
@@ -35,16 +36,37 @@
                 {
                     var newObject = ((Operator)expressionObjects[i]).Operation(previousObject, nextObject);
 
+                    expressionObjects.Remove(expressionObjects[i]);
+                    expressionObjects.Insert(i, newObject);
+
                     if (!(previousObject is Delimiter))
                         expressionObjects.Remove(previousObject);
-                    expressionObjects.Remove(expressionObjects[i]);
                     expressionObjects.Remove(nextObject);
-
-                    expressionObjects.Insert(i, newObject);
                 }
 
                 previousObject = expressionObjects[i];
             }
+
+            var delimiters = expressionObjects.OfType<Delimiter>().ToList();
+            foreach (var delimiter in delimiters)
+                expressionObjects.Remove(delimiter);
+
+            return expressionObjects.First();
+        }
+
+        public IEnumerable<Variable> GetVariables()
+        {
+            var variables = new List<Variable>();
+            foreach (var nestedExpression in expressionObjects.OfType<Expression>())
+                foreach (var variable in nestedExpression.GetVariables())
+                    if (!variables.Contains(variable))
+                        variables.Add(variable);
+
+            foreach (var variable in expressionObjects.OfType<Variable>())
+                if (!variables.Contains(variable))
+                    variables.Add(variable);
+
+            return variables;
         }
 
         public override ExpressionObject Copy()
@@ -59,8 +81,6 @@
     [Serializable]
     public class Clause : Expression
     {
-        public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
-
         public override ExpressionObject Copy()
         {
             var copyObjects =
@@ -78,7 +98,7 @@
         // This is only a shallow copy
         public override ExpressionObject Copy()
         {
-            return new Variable { value = value };
+            return new Variable { value = value, stringValue = stringValue };
         }
     }
 
@@ -140,7 +160,7 @@
 
         public override ExpressionObject Copy()
         {
-            return new Or { stringValue = stringValue };
+            return new And { stringValue = stringValue };
         }
     }
 
@@ -165,7 +185,7 @@
 
         public override ExpressionObject Copy()
         {
-            return new Or { stringValue = stringValue };
+            return new Not { stringValue = stringValue };
         }
     }
 

@@ -1,11 +1,10 @@
-﻿namespace Library
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace Library.GeneticAlgorithm
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
-    using UnityEngine;
-
     [CreateAssetMenu]
     public class ParseCNF : ScriptableObject
     {

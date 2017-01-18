@@ -1,3 +1,6 @@
 ﻿using UnityEngine;
 
-public class EnumFlagAttribute : PropertyAttribute { }
+namespace Attributes
+{
+    public class EnumFlagAttribute : PropertyAttribute { }
+}

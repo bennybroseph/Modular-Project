@@ -1,14 +1,16 @@
 ﻿using Library;
-
 using UnityEngine;
 
-public class TestScript : MonoBehaviour
+namespace TestScripts
 {
-    public AutoPropertyString m_TestValueString;
+    public class TestScript : MonoBehaviour
+    {
+        public AutoPropertyString m_TestValueString;
 
-    public AutoPropertyInt m_TestValueInt;
-    public AutoPropertyFloat m_TestValueFloat;
+        public AutoPropertyInt m_TestValueInt;
+        public AutoPropertyFloat m_TestValueFloat;
 
-    public AutoPropertyVector2 m_TestValueVector2;
-    public AutoPropertyVector3 m_TestValueVector3;
+        public AutoPropertyVector2 m_TestValueVector2;
+        public AutoPropertyVector3 m_TestValueVector3;
+    }
 }

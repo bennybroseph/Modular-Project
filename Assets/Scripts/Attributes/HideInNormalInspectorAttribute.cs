@@ -1,3 +1,6 @@
 ﻿using UnityEngine;
 
-public class HideInNormalInspectorAttribute : PropertyAttribute { }
+namespace Attributes
+{
+    public class HideInNormalInspectorAttribute : PropertyAttribute { }
+}

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class ReadOnlyAttribute : PropertyAttribute
+namespace Attributes
 {
+    public class ReadOnlyAttribute : PropertyAttribute
+    {
 
+    }
 }

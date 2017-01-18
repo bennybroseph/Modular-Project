@@ -1,5 +1,5 @@
 ﻿using Library;
-
+using Library.GeneticAlgorithm;
 using UnityEditor;
 
 using UnityEngine;

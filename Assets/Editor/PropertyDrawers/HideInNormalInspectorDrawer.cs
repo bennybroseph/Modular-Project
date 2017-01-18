@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Attributes;
+using UnityEngine;
 using UnityEditor;
 
 [CustomPropertyDrawer(typeof(HideInNormalInspectorAttribute))]
