@@ -160,7 +160,7 @@ namespace Library
             // if 'T' is an enumeration type
             if (typeof(T).IsEnum)
             {
-                // Iterate through each parsed state 'iState'
+                // Iterate through each parsedExpression state 'iState'
                 foreach (var iState in Enum.GetValues(typeof(T)))
                     m_States.Add((T)iState);    // Cache it
 

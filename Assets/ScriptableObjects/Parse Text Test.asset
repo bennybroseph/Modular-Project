@@ -11,4 +11,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cee16910f1f03474b8410ff6dfdcd871, type: 3}
   m_Name: Parse Text Test
   m_EditorClassIdentifier: 
-  m_Delimiters: 
+  cnfExpression: (a v b v (g v h)) ^ (c v d v (c v a v (d))) ^ (!a v b)
+  delimiter:
+    open: 40
+    close: 41
+    escape: 92
+  or: 118
+  and: 94
+  not: 33
+  parsedExpressions:
+  - value: (a v b v (g v h)) ^ (c v d v (c v a v (d))) ^ (!a v b)
+    clauses:
+    - (a v b v (g v h))
+    - (c v d v (c v a v (d)))
+    - (!a v b)
+    literals: 6100620063006400
+  - value: (g v h) ^ (c v a v (d))
+    clauses:
+    - (g v h)
+    - (c v a v (d))
+    literals: 6700680063006100
+  - value: (d)
+    clauses:
+    - (d)
+    literals: 6400
+  expressions:
+  - stringValue: (a v b v (g v h)) ^ (c v d v (c v a v (d))) ^ (!a v b)
+    expressionObjects:
+    - stringValue: (a v b v (g v h))
+    - stringValue: ^
+    - stringValue: (c v d v (c v a v (d)))
+    - stringValue: ^
+    - stringValue: (!a v b)
+  - stringValue: (g v h)(c v a v (d))
+    expressionObjects:
+    - stringValue: (g v h)
+    - stringValue: (c v a v (d))
+  - stringValue: (d)
+    expressionObjects:
+    - stringValue: (d)
