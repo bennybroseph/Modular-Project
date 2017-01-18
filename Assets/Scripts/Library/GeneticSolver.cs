@@ -15,7 +15,7 @@
         private class Chromosome
         {
             public bool value;
-            public char name;
+            public string name;
         }
         [Serializable]
         private class Candidate
@@ -29,12 +29,11 @@
         }
 
         [Serializable]
-        private class Equation
+        private class GeneticEquation
         {
             public List<Generation> generations = new List<Generation>();
 
-            public string value;
-            public List<char> literals = new List<char>();
+            public Expression expression;
 
             public bool solved;
         }
@@ -43,20 +42,20 @@
         private ParseCNF m_ParseCNF;
 
         [SerializeField]
-        private List<Equation> m_Equations = new List<Equation>();
+        private List<GeneticEquation> m_GeneticEquations = new List<GeneticEquation>();
 
         // Use this for initialization
         private void Awake()
         {
             Random.InitState(DateTime.Now.Millisecond);
 
-            foreach (var expression in m_ParseCNF.parsedExpressions)
+            m_ParseCNF.Parse();
+            foreach (var expression in m_ParseCNF.expressions)
             {
                 var newEquation =
-                    new Equation
+                    new GeneticEquation
                     {
-                        value = expression.value,
-                        literals = expression.literals
+                        expression = expression
                     };
 
                 var newGeneration = new Generation();
@@ -65,15 +64,15 @@
                 newGeneration.candidates.Add(new Candidate());
 
                 foreach (var candidate in newGeneration.candidates)
-                    foreach (var literal in expression.literals)
+                    foreach (var variable in expression.expressionObjects.OfType<Variable>())
                         candidate.chromosomes.Add(new Chromosome
                         {
                             value = Random.Range(0, 2) == 1,
-                            name = literal
+                            name = variable.stringValue,
                         });
 
                 newEquation.generations.Add(newGeneration);
-                m_Equations.Add(newEquation);
+                m_GeneticEquations.Add(newEquation);
             }
 
             StartCoroutine(RunSolver());
@@ -81,23 +80,23 @@
 
         private IEnumerator RunSolver()
         {
-            while (!m_Equations.All(equation => equation.solved))
+            while (true)
             {
-                foreach (var equation in m_Equations)
+                foreach (var equation in m_GeneticEquations)
                 {
                     equation.solved =
                         equation.generations.Last().candidates.Any(
-                            candidate => Evaluate(equation.value, candidate.chromosomes.ToArray()));
+                            candidate => Evaluate(equation.expression, candidate));
 
                     if (equation.solved)
                     {
                         Debug.Log("Solved");
                         Debug.Log("Generations: " + equation.generations.Count);
-                        Debug.Log(equation.value);
+                        Debug.Log(equation.expression.stringValue);
 
                         var solvingCandidate =
                             equation.generations.Last().candidates.First(
-                                candidate => Evaluate(equation.value, candidate.chromosomes.ToArray()));
+                                candidate => Evaluate(equation.expression, candidate));
 
                         foreach (var chromosome in solvingCandidate.chromosomes)
                             Debug.Log(chromosome.name + " = " + chromosome.value);
@@ -111,11 +110,11 @@
                     newGeneration.candidates.Add(new Candidate());
 
                     foreach (var candidate in newGeneration.candidates)
-                        foreach (var literal in equation.literals)
+                        foreach (var variable in equation.expression.expressionObjects.OfType<Variable>())
                             candidate.chromosomes.Add(new Chromosome
                             {
                                 value = Random.Range(0, 2) == 1,
-                                name = literal
+                                name = variable.stringValue
                             });
 
                     equation.generations.Add(newGeneration);
@@ -123,50 +122,22 @@
                     yield return new WaitForSeconds(1f);
                 }
             }
-
-
         }
 
-        private bool Evaluate(string expression, params Chromosome[] variables)
+        private bool Evaluate(Expression expression, Candidate candidate)
         {
-            var previousValue = false;
+            expression = expression.Copy() as Expression;
 
-            var not = false;
+            var variables = expression.expressionObjects.OfType<Variable>().ToList();
 
-            var or = false;
-            var and = false;
+            foreach (var variable in variables)
+                foreach (var chromosome in candidate.chromosomes)
+                    if (chromosome.name == variable.stringValue)
+                        variable.value = chromosome.value;
 
-            var index = 0;
-            while (index < expression.Length)
-            {
-                if (expression[index] == m_ParseCNF.not)
-                    not = true;
-                else if (expression[index] == m_ParseCNF.or)
-                    or = true;
-                else if (expression[index] == m_ParseCNF.and)
-                    and = true;
-                else if (variables.Any(x => x.name == expression[index]))
-                {
-                    var currentValue = variables.First(x => x.name == expression[index]).value;
-                    if (not)
-                        currentValue = !currentValue;
-                    not = false;
+            expression.Evaluate();
 
-                    if (or)
-                        previousValue = previousValue || currentValue;
-                    else if (and)
-                        previousValue = previousValue && currentValue;
-                    else
-                        previousValue = currentValue;
-
-                    or = false;
-                    and = false;
-                }
-
-                ++index;
-            }
-
-            return previousValue;
+            return false;
         }
     }
 }

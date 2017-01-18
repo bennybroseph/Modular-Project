@@ -6,57 +6,6 @@
 
     using UnityEngine;
 
-    [Serializable]
-    public class ExpressionObject
-    {
-        public string stringValue;
-    }
-
-    [Serializable]
-    public class Expression : ExpressionObject
-    {
-        public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
-    }
-
-    [Serializable]
-    public class Clause : ExpressionObject
-    {
-        public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
-        public int nestedValue;
-    }
-
-    [Serializable]
-    public class Variable : ExpressionObject
-    {
-        public bool value;
-    }
-
-    [Serializable]
-    public class Operator : ExpressionObject
-    {
-        public enum Type
-        {
-            Or,
-            And,
-            Not,
-        }
-
-        public Type type;
-    }
-
-    [Serializable]
-    public class Delimiter : ExpressionObject
-    {
-        public enum Type
-        {
-            Open,
-            Close,
-            Escape,
-        }
-
-        public Type type;
-    }
-
     [CreateAssetMenu]
     public class ParseCNF : ScriptableObject
     {
@@ -65,7 +14,7 @@
         {
             public char open, close, escape;
 
-            public static Delimiter _default =
+            public static readonly Delimiter _default =
                 new Delimiter { open = '(', close = ')', escape = '\\' };
         }
 
@@ -78,9 +27,9 @@
             public List<char> literals = new List<char>();
         }
 
-        private static string _or = "||";
-        private static string _and = "&&";
-        private static string _not = "!";
+        private const string _or = "||";
+        private const string _and = "&&";
+        private const string _not = "!";
 
         [TextArea]
         public string cnfExpression;
@@ -205,24 +154,24 @@
                 }
                 else if (cnfExpression[index] != ' ')
                 {
-                    var type = Operator.Type.And;
+                    Operator newOperator;
 
                     if (cnfExpression[index] == or)
-                        type = Operator.Type.Or;
-                    else if (cnfExpression[index] == not)
-                        type = Operator.Type.Not;
+                        newOperator = new Or { stringValue = cnfExpression[index].ToString() };
+                    else if (cnfExpression[index] == and)
+                        newOperator = new And { stringValue = cnfExpression[index].ToString() };
+                    else
+                        newOperator = new Not { stringValue = cnfExpression[index].ToString() };
 
                     var trueNestLevel = nestLevel - 1;
                     if (trueNestLevel < 0)
                         trueNestLevel = 0;
 
                     if (currentClause.Count != 0)
-                        currentClause.Last().expressionObjects.Add(
-                            new Operator { type = type, stringValue = cnfExpression[index].ToString() });
+                        currentClause.Last().expressionObjects.Add(newOperator);
                     else
                     {
-                        expressions[trueNestLevel].expressionObjects.Add(
-                            new Operator { type = type, stringValue = cnfExpression[index].ToString() });
+                        expressions[trueNestLevel].expressionObjects.Add(newOperator);
                         expressions[trueNestLevel].stringValue += " " + cnfExpression[index] + " ";
                     }
                 }
