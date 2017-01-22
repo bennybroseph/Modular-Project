@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Library.GeneticAlgorithm
 {
+    using UnityEngine.UI;
     using Random = UnityEngine.Random;
 
     [Serializable]
@@ -37,17 +38,17 @@ namespace Library.GeneticAlgorithm
 
     public class GeneticSolver : MonoBehaviour
     {
-        
+
 
         [SerializeField]
         private ParseCNF m_ParseCNF;
 
         [SerializeField]
-        private List<GeneticEquation> m_GeneticEquations = new List<GeneticEquation>();
+        private GeneticEquation m_GeneticEquation;
 
-        public List<GeneticEquation> geneticEquations
+        public GeneticEquation geneticEquation
         {
-            get { return m_GeneticEquations; }
+            get { return m_GeneticEquation; }
         }
 
         // Use this for initialization
@@ -56,30 +57,27 @@ namespace Library.GeneticAlgorithm
             Random.InitState(DateTime.Now.Millisecond);
 
             m_ParseCNF.Parse();
-            foreach (var expression in m_ParseCNF.expressions)
-            {
-                var newEquation =
-                    new GeneticEquation
+            m_GeneticEquation =
+                new GeneticEquation
+                {
+                    expression = m_ParseCNF.expression
+                };
+
+            var newGeneration = new Generation();
+
+            newGeneration.candidates.Add(new Candidate());
+            newGeneration.candidates.Add(new Candidate());
+
+            foreach (var candidate in newGeneration.candidates)
+                foreach (var variable in m_ParseCNF.expression.GetVariables())
+                    candidate.chromosomes.Add(new Chromosome
                     {
-                        expression = expression
-                    };
+                        value = Random.Range(0, 2) == 1,
+                        name = variable.stringValue,
+                    });
 
-                var newGeneration = new Generation();
+            m_GeneticEquation.generations.Add(newGeneration);
 
-                newGeneration.candidates.Add(new Candidate());
-                newGeneration.candidates.Add(new Candidate());
-
-                foreach (var candidate in newGeneration.candidates)
-                    foreach (var variable in expression.GetVariables())
-                        candidate.chromosomes.Add(new Chromosome
-                        {
-                            value = Random.Range(0, 2) == 1,
-                            name = variable.stringValue,
-                        });
-
-                newEquation.generations.Add(newGeneration);
-                m_GeneticEquations.Add(newEquation);
-            }
 
             StartCoroutine(RunSolver());
         }
@@ -88,64 +86,61 @@ namespace Library.GeneticAlgorithm
         {
             while (true)
             {
-                foreach (var equation in m_GeneticEquations)
+                foreach (var candidate in m_GeneticEquation.generations.Last().candidates)
+                    yield return Evaluate(m_GeneticEquation, candidate);
+
+                if (m_GeneticEquation.solved)
                 {
-                    equation.solved =
-                        equation.generations.Last().candidates.Any(
-                            candidate => Evaluate(equation.expression, candidate));
+                    yield return null;
 
-                    if (equation.solved)
-                    {
-                        Debug.Log("Solved");
-                        Debug.Log("Generations: " + equation.generations.Count);
-                        Debug.Log(equation.expression.stringValue);
-
-                        var solvingCandidate =
-                            equation.generations.Last().candidates.First(
-                                candidate => Evaluate(equation.expression, candidate));
-
-                        foreach (var chromosome in solvingCandidate.chromosomes)
-                            Debug.Log(chromosome.name + " = " + chromosome.value);
-
-                        yield return new WaitForSeconds(1f);
-
-                        continue;
-                    }
-
-                    var newGeneration = new Generation();
-
-                    newGeneration.candidates.Add(new Candidate());
-                    newGeneration.candidates.Add(new Candidate());
-
-                    foreach (var candidate in newGeneration.candidates)
-                        foreach (var variable in equation.expression.expressionObjects.OfType<Variable>())
-                            candidate.chromosomes.Add(new Chromosome
-                            {
-                                value = Random.Range(0, 2) == 1,
-                                name = variable.stringValue
-                            });
-
-                    equation.generations.Add(newGeneration);
-
-                    yield return new WaitForSeconds(1f);
+                    continue;
                 }
+
+                var newGeneration = new Generation();
+
+                newGeneration.candidates.Add(new Candidate());
+                newGeneration.candidates.Add(new Candidate());
+
+                foreach (var candidate in newGeneration.candidates)
+                    foreach (var variable in m_GeneticEquation.expression.expressionObjects.OfType<Variable>())
+                        candidate.chromosomes.Add(new Chromosome
+                        {
+                            value = Random.Range(0, 2) == 1,
+                            name = variable.stringValue
+                        });
+
+                m_GeneticEquation.generations.Add(newGeneration);
+
+                yield return new WaitForSeconds(1f);
+
             }
         }
 
-        private bool Evaluate(Expression expression, Candidate candidate)
+        private IEnumerator Evaluate(GeneticEquation equation, Candidate candidate)
         {
-            expression = expression.Copy() as Expression;
+            var expression = equation.expression.Copy() as Expression;
             if (expression == null)
-                return false;
+                yield break;
+
+            var expressionSolverVisualizer = new GameObject().AddComponent<ExpressionSolverVisualizer>();
+            var panel = FindObjectOfType<VerticalLayoutGroup>();
+
+            expressionSolverVisualizer.transform.SetParent(panel.transform);
+            expressionSolverVisualizer.transform.SetAsFirstSibling();
+
+            expressionSolverVisualizer.expression = expression;
 
             foreach (var variable in expression.GetVariables())
                 foreach (var chromosome in candidate.chromosomes)
                     if (chromosome.name == variable.stringValue)
                         variable.value = chromosome.value;
 
-            var result = expression.Evaluate() as Variable;
+            yield return expression.Evaluate();
+            var result = expression.expressionObjects.First() as Variable;
 
-            return (bool)result.value;
+            equation.solved = (bool)result.value;
+
+            Destroy(expressionSolverVisualizer.gameObject);
         }
     }
 }

@@ -44,13 +44,13 @@ namespace Library.GeneticAlgorithm
         public List<Expression> parsedExpressions = new List<Expression>();
 
         [Space, Space]
-        public List<Library.Expression> expressions = new List<Library.Expression>();
+        public Library.Expression expression;
 
         [ContextMenu("Parse")]
         public void Parse()
         {
             parsedExpressions.Clear();
-            expressions.Clear();
+            expression.expressionObjects.Clear();
 
             var currentClause = new List<Clause>();
 
@@ -84,20 +84,29 @@ namespace Library.GeneticAlgorithm
                         {
                             expressionObjects = new List<ExpressionObject>
                             {
-                                new Library.Delimiter{ type = Library.Delimiter.Type.Open }
+                                new Library.Delimiter
+                                {
+                                    stringValue = cnfExpression[index].ToString(),
+                                    type = Library.Delimiter.Type.Open
+                                }
                             },
                             stringValue = delimiter.open.ToString(),
                         });
+
+                    if (nestLevel == 1)
+                    {
+                        expression.expressionObjects.Add(currentClause.Last());
+                    }
 
                     if (nestLevel > parsedExpressions.Count)
                     {
                         parsedExpressions.Add(new Expression());
 
-                        expressions.Add(
-                            new Library.Expression
-                            {
-                                expressionObjects = new List<ExpressionObject>()
-                            });
+                        //    expressions.Add(
+                        //        new Library.Expression
+                        //        {
+                        //            expressionObjects = new List<ExpressionObject>()
+                        //        });
                     }
                 }
                 else if (cnfExpression[index] == delimiter.close)
@@ -108,13 +117,17 @@ namespace Library.GeneticAlgorithm
                     parsedExpressions[nestLevel - 1].clauses.Add(clauses.Last());
 
                     if (currentClause.Count >= 2)
-                        currentClause[currentClause.Count - 2].expressionObjects.Add(expressions.Last());
+                        currentClause[currentClause.Count - 2].expressionObjects.Add(currentClause.Last());
 
                     currentClause.Last().expressionObjects.Add(
-                        new Library.Delimiter { type = Library.Delimiter.Type.Close });
+                        new Library.Delimiter
+                        {
+                            stringValue = cnfExpression[index].ToString(),
+                            type = Library.Delimiter.Type.Close
+                        });
 
-                    expressions[nestLevel - 1].expressionObjects.Add(currentClause.Last());
-                    expressions[nestLevel - 1].stringValue += currentClause.Last().stringValue;
+                    //expression.expressionObjects.Add(currentClause.Last());
+                    //expression.stringValue += currentClause.Last().stringValue;
 
                     currentClause.Remove(currentClause.Last());
 
@@ -127,17 +140,10 @@ namespace Library.GeneticAlgorithm
                     cnfExpression[index] != ' ')
                 {
                     Variable existingVariable = null;
-                    foreach (var expression in expressions)
+                    foreach (var variable in expression.GetVariables())
                     {
-                        foreach (var expressionObject in expression.expressionObjects)
-                        {
-                            var variable = expressionObject as Variable;
-                            if (variable == null || variable.stringValue != cnfExpression[index].ToString())
-                                continue;
-
+                        if (variable.stringValue == cnfExpression[index].ToString())
                             existingVariable = variable;
-                            break;
-                        }
                     }
 
                     if (existingVariable == null)
@@ -170,8 +176,8 @@ namespace Library.GeneticAlgorithm
                         currentClause.Last().expressionObjects.Add(newOperator);
                     else
                     {
-                        expressions[trueNestLevel].expressionObjects.Add(newOperator);
-                        expressions[trueNestLevel].stringValue += " " + cnfExpression[index] + " ";
+                        expression.expressionObjects.Add(newOperator);
+                        expression.stringValue += " " + cnfExpression[index] + " ";
                     }
                 }
 

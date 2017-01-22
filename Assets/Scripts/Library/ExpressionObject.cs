@@ -1,6 +1,7 @@
 ﻿namespace Library
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -20,11 +21,17 @@
     {
         public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
 
-        public ExpressionObject Evaluate()
+        public IEnumerator Evaluate()
         {
             for (var i = 0; i < expressionObjects.Count; i++)
-                if (expressionObjects[i] is Expression)
-                    expressionObjects[i] = ((Expression)expressionObjects[i]).Evaluate();
+            {
+                var expression = expressionObjects[i] as Expression;
+                if (expression == null)
+                    continue;
+
+                yield return expression.Evaluate();
+                expressionObjects[i] = expression.expressionObjects.First();
+            }
 
             ExpressionObject previousObject = null;
             for (var i = 0; i < expressionObjects.Count; ++i)
@@ -45,13 +52,15 @@
                 }
 
                 previousObject = expressionObjects[i];
+
+                yield return null;
             }
 
             var delimiters = expressionObjects.OfType<Delimiter>().ToList();
             foreach (var delimiter in delimiters)
                 expressionObjects.Remove(delimiter);
 
-            return expressionObjects.First();
+            UpdateStringValue();
         }
 
         public IEnumerable<Variable> GetVariables()
@@ -67,6 +76,24 @@
                     variables.Add(variable);
 
             return variables;
+        }
+
+        public void UpdateStringValue()
+        {
+            stringValue = string.Empty;
+
+            foreach (var nestedExpression in expressionObjects.OfType<Expression>())
+                nestedExpression.UpdateStringValue();
+
+            foreach (var expressionObject in expressionObjects)
+            {
+                stringValue += expressionObject.stringValue;
+
+                if (!(expressionObject is Delimiter))
+                    stringValue += " ";
+            }
+
+            stringValue = stringValue.Trim(' ');
         }
 
         public override ExpressionObject Copy()
