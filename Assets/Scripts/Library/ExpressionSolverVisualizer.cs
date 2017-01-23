@@ -1,5 +1,6 @@
 ﻿namespace Library
 {
+    using System.Linq;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -29,7 +30,17 @@
         private void Update()
         {
             m_Expression.UpdateStringValue();
-            m_Text.text = m_Expression.stringValue;
+
+            m_Text.text = string.Empty;
+            foreach (var expressionObject in m_Expression.expressionObjects)
+            {
+                if (m_Expression.currentlyEvaluatedObjects.Any(obj => obj == expressionObject))
+                {
+                    m_Text.text += "<color=#AAAAAAFF>" + expressionObject.stringValue + "</color>";
+                }
+                else
+                    m_Text.text += expressionObject.stringValue;
+            }
         }
     }
 }

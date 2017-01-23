@@ -9,31 +9,15 @@ namespace Library.GeneticAlgorithm
     public class ParseCNF : ScriptableObject
     {
         [Serializable]
-        public class Delimiter
+        public class DelimiterChar
         {
             public char open, close, escape;
-
-            public static readonly Delimiter _default =
-                new Delimiter { open = '(', close = ')', escape = '\\' };
         }
-
-        [Serializable]
-        public class Expression
-        {
-            public string value;
-            public List<string> clauses = new List<string>();
-
-            public List<char> literals = new List<char>();
-        }
-
-        private const string _or = "||";
-        private const string _and = "&&";
-        private const string _not = "!";
 
         [TextArea]
         public string cnfExpression;
 
-        public Delimiter delimiter;
+        public DelimiterChar delimiter;
 
         [Space]
         public char or;
@@ -41,21 +25,14 @@ namespace Library.GeneticAlgorithm
         public char not;
 
         [Space, Space]
-        public List<Expression> parsedExpressions = new List<Expression>();
-
-        [Space, Space]
-        public Library.Expression expression;
+        public Expression expression;
 
         [ContextMenu("Parse")]
         public void Parse()
         {
-            parsedExpressions.Clear();
             expression.expressionObjects.Clear();
 
             var currentClause = new List<Clause>();
-
-            var clauseStack = new List<string>(1);
-            var clauses = new List<string>();
 
             var nestLevel = 0;
             var index = 0;
@@ -70,13 +47,8 @@ namespace Library.GeneticAlgorithm
                 foreach (var clause in currentClause)
                     clause.stringValue += cnfExpression[index];
 
-                for (var i = 0; i < clauseStack.Count; ++i)
-                    clauseStack[i] += cnfExpression[index];
-
                 if (cnfExpression[index] == delimiter.open)
                 {
-                    clauseStack.Add(cnfExpression[index].ToString());
-
                     ++nestLevel;
 
                     currentClause.Add(
@@ -84,50 +56,29 @@ namespace Library.GeneticAlgorithm
                         {
                             expressionObjects = new List<ExpressionObject>
                             {
-                                new Library.Delimiter
+                                new Delimiter
                                 {
                                     stringValue = cnfExpression[index].ToString(),
-                                    type = Library.Delimiter.Type.Open
+                                    type = Delimiter.Type.Open
                                 }
                             },
                             stringValue = delimiter.open.ToString(),
                         });
 
                     if (nestLevel == 1)
-                    {
                         expression.expressionObjects.Add(currentClause.Last());
-                    }
-
-                    if (nestLevel > parsedExpressions.Count)
-                    {
-                        parsedExpressions.Add(new Expression());
-
-                        //    expressions.Add(
-                        //        new Library.Expression
-                        //        {
-                        //            expressionObjects = new List<ExpressionObject>()
-                        //        });
-                    }
                 }
                 else if (cnfExpression[index] == delimiter.close)
                 {
-                    clauses.Add(clauseStack.Last());
-                    clauseStack.RemoveAt(clauseStack.Count - 1);
-
-                    parsedExpressions[nestLevel - 1].clauses.Add(clauses.Last());
-
                     if (currentClause.Count >= 2)
                         currentClause[currentClause.Count - 2].expressionObjects.Add(currentClause.Last());
 
                     currentClause.Last().expressionObjects.Add(
-                        new Library.Delimiter
+                        new Delimiter
                         {
                             stringValue = cnfExpression[index].ToString(),
-                            type = Library.Delimiter.Type.Close
+                            type = Delimiter.Type.Close
                         });
-
-                    //expression.expressionObjects.Add(currentClause.Last());
-                    //expression.stringValue += currentClause.Last().stringValue;
 
                     currentClause.Remove(currentClause.Last());
 
@@ -151,11 +102,6 @@ namespace Library.GeneticAlgorithm
                             new Variable { stringValue = cnfExpression[index].ToString() });
                     else
                         currentClause.Last().expressionObjects.Add(existingVariable);
-
-                    if (!parsedExpressions[nestLevel - 1].literals.Contains(cnfExpression[index]))
-                    {
-                        parsedExpressions[nestLevel - 1].literals.Add(cnfExpression[index]);
-                    }
                 }
                 else if (cnfExpression[index] != ' ')
                 {
@@ -167,10 +113,6 @@ namespace Library.GeneticAlgorithm
                         newOperator = new And { stringValue = cnfExpression[index].ToString() };
                     else
                         newOperator = new Not { stringValue = cnfExpression[index].ToString() };
-
-                    var trueNestLevel = nestLevel - 1;
-                    if (trueNestLevel < 0)
-                        trueNestLevel = 0;
 
                     if (currentClause.Count != 0)
                         currentClause.Last().expressionObjects.Add(newOperator);
@@ -184,31 +126,7 @@ namespace Library.GeneticAlgorithm
                 ++index;
             }
 
-            foreach (var parsedExpression in parsedExpressions)
-            {
-                foreach (var clause in parsedExpression.clauses)
-                    parsedExpression.value += clause + " " + and + " ";
-
-                parsedExpression.value = parsedExpression.value.Trim(' ', and);
-            }
-        }
-
-        private void ConvertToDefault()
-        {
-            foreach (var parsedExpression in parsedExpressions)
-            {
-                for (var i = 0; i < parsedExpression.clauses.Count; ++i)
-                {
-                    parsedExpression.clauses[i] =
-                        parsedExpression.clauses[i].Replace(delimiter.open, Delimiter._default.open);
-                    parsedExpression.clauses[i] =
-                        parsedExpression.clauses[i].Replace(delimiter.close, Delimiter._default.close);
-
-                    parsedExpression.clauses[i] = parsedExpression.clauses[i].Replace(and.ToString(), _and);
-                    parsedExpression.clauses[i] = parsedExpression.clauses[i].Replace(or.ToString(), _or);
-                    parsedExpression.clauses[i] = parsedExpression.clauses[i].Replace(not.ToString(), _not);
-                }
-            }
+            expression.UpdateStringValue();
         }
     }
 }

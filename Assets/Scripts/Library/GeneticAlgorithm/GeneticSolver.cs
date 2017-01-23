@@ -38,17 +38,21 @@ namespace Library.GeneticAlgorithm
 
     public class GeneticSolver : MonoBehaviour
     {
-
-
         [SerializeField]
         private ParseCNF m_ParseCNF;
 
         [SerializeField]
         private GeneticEquation m_GeneticEquation;
 
+        private Expression m_CurrentlyEvaluatedExpression;
+
         public GeneticEquation geneticEquation
         {
             get { return m_GeneticEquation; }
+        }
+        public Expression currentlyEvaluatedExpression
+        {
+            get { return m_CurrentlyEvaluatedExpression; }
         }
 
         // Use this for initialization
@@ -121,6 +125,8 @@ namespace Library.GeneticAlgorithm
             var expression = equation.expression.Copy() as Expression;
             if (expression == null)
                 yield break;
+
+            m_CurrentlyEvaluatedExpression = expression;
 
             var expressionSolverVisualizer = new GameObject().AddComponent<ExpressionSolverVisualizer>();
             var panel = FindObjectOfType<VerticalLayoutGroup>();

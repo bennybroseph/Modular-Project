@@ -21,13 +21,20 @@
     {
         public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
 
+        public List<ExpressionObject> currentlyEvaluatedObjects = new List<ExpressionObject>();
+
         public IEnumerator Evaluate()
         {
+            currentlyEvaluatedObjects.Clear();
+
             for (var i = 0; i < expressionObjects.Count; i++)
             {
                 var expression = expressionObjects[i] as Expression;
                 if (expression == null)
                     continue;
+
+                currentlyEvaluatedObjects.Clear();
+                currentlyEvaluatedObjects.Add(expression);
 
                 yield return expression.Evaluate();
                 expressionObjects[i] = expression.expressionObjects.First();
@@ -38,6 +45,10 @@
             {
                 var nextObject = i + 1 < expressionObjects.Count ?
                     expressionObjects[i + 1] : null;
+
+                currentlyEvaluatedObjects.Clear();
+                currentlyEvaluatedObjects.AddRange(
+                    new[] { previousObject, expressionObjects[i], nextObject });
 
                 if (expressionObjects[i] is Operator)
                 {
@@ -60,7 +71,11 @@
             foreach (var delimiter in delimiters)
                 expressionObjects.Remove(delimiter);
 
+            currentlyEvaluatedObjects.Clear();
+
             UpdateStringValue();
+
+            yield return null;
         }
 
         public IEnumerable<Variable> GetVariables()
@@ -85,12 +100,17 @@
             foreach (var nestedExpression in expressionObjects.OfType<Expression>())
                 nestedExpression.UpdateStringValue();
 
-            foreach (var expressionObject in expressionObjects)
+            for (var i = 0; i < expressionObjects.Count; ++i)
             {
-                stringValue += expressionObject.stringValue;
+                var nextObject =
+                    i + 1 < expressionObjects.Count ? expressionObjects[i + 1] : null;
 
-                if (!(expressionObject is Delimiter))
-                    stringValue += " ";
+                stringValue += expressionObjects[i].stringValue;
+
+                if (expressionObjects[i] is Delimiter || nextObject is Delimiter)
+                    continue;
+
+                stringValue += " ";
             }
 
             stringValue = stringValue.Trim(' ');
