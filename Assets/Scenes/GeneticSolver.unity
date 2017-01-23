@@ -139,7 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
+    m_Left: 10
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
@@ -317,7 +317,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
+    m_Left: 10
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
@@ -622,7 +622,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ParseCNF: {fileID: 11400000, guid: 7f6a57261e7cc334e99b341992a477b9, type: 2}
-  m_GeneticEquations: []
+  m_GeneticEquation:
+    generations: []
+    expression:
+      stringValue: 
+    solved: 0
 --- !u!4 &2012549269
 Transform:
   m_ObjectHideFlags: 0

@@ -50,6 +50,8 @@
                 currentlyEvaluatedObjects.AddRange(
                     new[] { previousObject, expressionObjects[i], nextObject });
 
+                yield return null;
+
                 if (expressionObjects[i] is Operator)
                 {
                     var newObject = ((Operator)expressionObjects[i]).Operation(previousObject, nextObject);
@@ -63,8 +65,6 @@
                 }
 
                 previousObject = expressionObjects[i];
-
-                yield return null;
             }
 
             var delimiters = expressionObjects.OfType<Delimiter>().ToList();

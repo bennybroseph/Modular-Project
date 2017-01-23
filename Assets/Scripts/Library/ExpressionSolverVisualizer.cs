@@ -32,14 +32,43 @@
             m_Expression.UpdateStringValue();
 
             m_Text.text = string.Empty;
-            foreach (var expressionObject in m_Expression.expressionObjects)
+
+            UpdateText(m_Expression);
+        }
+
+        private void UpdateText(Expression expression)
+        {
+            var expressionObjects = expression.expressionObjects;
+            for (var i = 0; i < expressionObjects.Count; ++i)
             {
-                if (m_Expression.currentlyEvaluatedObjects.Any(obj => obj == expressionObject))
+                var currentlyEvaluated =
+                    expression.currentlyEvaluatedObjects.Any(obj => obj == expressionObjects[i]);
+
+                var nextObject =
+                    i + 1 < expressionObjects.Count ? expressionObjects[i + 1] : null;
+
+                if (expressionObjects[i] is Expression)
                 {
-                    m_Text.text += "<color=#AAAAAAFF>" + expressionObject.stringValue + "</color>";
+                    if (currentlyEvaluated)
+                        m_Text.text += "<color=#3333FFFF>";
+
+                    UpdateText(expressionObjects[i] as Expression);
+
+                    if (currentlyEvaluated)
+                        m_Text.text += "</color>";
                 }
                 else
-                    m_Text.text += expressionObject.stringValue;
+                {
+                    var stringValue =
+                        expressionObjects[i] is Delimiter || nextObject is Delimiter
+                            ? expressionObjects[i].stringValue
+                            : expressionObjects[i].stringValue + " ";
+
+                    if (currentlyEvaluated)
+                        m_Text.text += "<color=#33FF33FF>" + stringValue + "</color>";
+                    else
+                        m_Text.text += stringValue;
+                }
             }
         }
     }
