@@ -895,6 +895,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ParseCNFs:
+  - {fileID: 11400000, guid: 7f6a57261e7cc334e99b341992a477b9, type: 2}
+  - {fileID: 11400000, guid: 2a2bd2755d9cb314e99d28e0fcefc5e5, type: 2}
+  - {fileID: 11400000, guid: 2034eb93e1d346443bbdaabe1c4991cb, type: 2}
+  - {fileID: 11400000, guid: 1b693237a25f48a43bbac1b35d28ba0a, type: 2}
   - {fileID: 11400000, guid: 65843d8b10f8fe74ca4aa285f0dda000, type: 2}
   m_CurrentGeneticEquation:
     currentGeneration:
