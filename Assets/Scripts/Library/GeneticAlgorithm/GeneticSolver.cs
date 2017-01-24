@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-
-namespace Library.GeneticAlgorithm
+﻿namespace Library.GeneticAlgorithm
 {
-    using UnityEngine.UI;
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
+    using UnityEngine;
+
     using Random = UnityEngine.Random;
 
     [Serializable]
@@ -14,11 +13,15 @@ namespace Library.GeneticAlgorithm
     {
         public bool value;
         public string name;
+
+        public bool inherited;
     }
     [Serializable]
     public class Candidate
     {
         public List<Chromosome> chromosomes = new List<Chromosome>();
+
+        public float fitness;
     }
     [Serializable]
     public class Generation
@@ -29,26 +32,45 @@ namespace Library.GeneticAlgorithm
     [Serializable]
     public class GeneticEquation
     {
-        public List<Generation> generations = new List<Generation>();
+        public Generation currentGeneration;
 
         public Expression expression;
 
         public bool solved;
+        public Candidate solvingCandidate;
+
+        public int generations;
+
+        public int solvingCandidateIndex
+        {
+            get
+            {
+                return currentGeneration.candidates.FindIndex(candidate => candidate == solvingCandidate);
+            }
+        }
     }
 
     public class GeneticSolver : MonoBehaviour
     {
         [SerializeField]
-        private ParseCNF m_ParseCNF;
+        private List<ParseCNF> m_ParseCNFs;
 
         [SerializeField]
-        private GeneticEquation m_GeneticEquation;
+        private GeneticEquation m_CurrentGeneticEquation;
 
+        private Candidate m_CurrentlyEvaluatedCandidate;
         private Expression m_CurrentlyEvaluatedExpression;
 
-        public GeneticEquation geneticEquation
+        private float m_NextStepHeldTime;
+
+        public GeneticEquation currentGeneticEquation
         {
-            get { return m_GeneticEquation; }
+            get { return m_CurrentGeneticEquation; }
+        }
+
+        public Candidate currentlyEvaluatedCandidate
+        {
+            get { return m_CurrentlyEvaluatedCandidate; }
         }
         public Expression currentlyEvaluatedExpression
         {
@@ -58,65 +80,109 @@ namespace Library.GeneticAlgorithm
         // Use this for initialization
         private void Awake()
         {
+            QualitySettings.vSyncCount = 0;
+
             Random.InitState(DateTime.Now.Millisecond);
 
-            m_ParseCNF.Parse();
-            m_GeneticEquation =
-                new GeneticEquation
-                {
-                    expression = m_ParseCNF.expression
-                };
-
-            var newGeneration = new Generation();
-
-            newGeneration.candidates.Add(new Candidate());
-            newGeneration.candidates.Add(new Candidate());
-
-            foreach (var candidate in newGeneration.candidates)
-                foreach (var variable in m_ParseCNF.expression.GetVariables())
-                    candidate.chromosomes.Add(new Chromosome
-                    {
-                        value = Random.Range(0, 2) == 1,
-                        name = variable.stringValue,
-                    });
-
-            m_GeneticEquation.generations.Add(newGeneration);
-
+            foreach (var parseCNF in m_ParseCNFs)
+                parseCNF.Parse();
 
             StartCoroutine(RunSolver());
         }
 
+        private void Update()
+        {
+            m_NextStepHeldTime += Time.deltaTime;
+
+            if (Input.GetKeyDown(KeyCode.P))
+                Expression.pauseEvaluation = !Expression.pauseEvaluation;
+
+            if (Input.GetKeyDown(KeyCode.RightArrow) ||
+                m_NextStepHeldTime >= 0.25f && Input.GetKey(KeyCode.RightArrow))
+                StartCoroutine(NextStepEvaluation());
+
+            if (!Input.GetKey(KeyCode.RightArrow))
+                m_NextStepHeldTime = 0f;
+
+            if (!Expression.yieldEvaluation)
+                Expression.pauseEvaluation = false;
+        }
+
         private IEnumerator RunSolver()
         {
-            while (true)
+            foreach (var parseCNF in m_ParseCNFs)
             {
-                foreach (var candidate in m_GeneticEquation.generations.Last().candidates)
-                    yield return Evaluate(m_GeneticEquation, candidate);
+                m_CurrentGeneticEquation = new GeneticEquation { expression = parseCNF.expression };
 
-                if (m_GeneticEquation.solved)
-                {
-                    yield return null;
+                var initialGeneration = new Generation();
 
-                    continue;
-                }
+                for (var i = 0; i < Random.Range(20, 30); ++i)
+                    initialGeneration.candidates.Add(new Candidate());
 
-                var newGeneration = new Generation();
-
-                newGeneration.candidates.Add(new Candidate());
-                newGeneration.candidates.Add(new Candidate());
-
-                foreach (var candidate in newGeneration.candidates)
-                    foreach (var variable in m_GeneticEquation.expression.expressionObjects.OfType<Variable>())
+                foreach (var candidate in initialGeneration.candidates)
+                    foreach (var variable in parseCNF.expression.GetVariables())
                         candidate.chromosomes.Add(new Chromosome
                         {
                             value = Random.Range(0, 2) == 1,
-                            name = variable.stringValue
+                            name = variable.stringValue,
                         });
 
-                m_GeneticEquation.generations.Add(newGeneration);
+                ++m_CurrentGeneticEquation.generations;
+                m_CurrentGeneticEquation.currentGeneration = initialGeneration;
 
-                yield return new WaitForSeconds(1f);
+                while (!m_CurrentGeneticEquation.solved)
+                {
+                    foreach (var candidate in m_CurrentGeneticEquation.currentGeneration.candidates)
+                    {
+                        if (m_CurrentGeneticEquation.solved)
+                            continue;
 
+                        yield return Evaluate(m_CurrentGeneticEquation, candidate);
+                    }
+
+                    if (m_CurrentGeneticEquation.solved)
+                        continue;
+
+                    var newGeneration = new Generation();
+
+                    var currentGeneration = m_CurrentGeneticEquation.currentGeneration;
+
+                    currentGeneration.candidates.Sort(SortCandidates);
+                    var sortedCandidates = currentGeneration.candidates.ToList();
+
+                    var parent1 = sortedCandidates.First();
+
+                    sortedCandidates.RemoveAt(0);
+                    var parent2 = sortedCandidates.First();
+
+                    for (var i = 0; i < Random.Range(5, 10); ++i)
+                    {
+                        newGeneration.candidates.Add(new Candidate());
+                        for (var j = 0; j < currentGeneration.candidates[0].chromosomes.Count; ++j)
+                        {
+                            var shouldInherit = Random.Range(1f, 100f) <= 40f;
+
+                            newGeneration.candidates[i].chromosomes.Add(
+                                new Chromosome
+                                {
+                                    value =
+                                        shouldInherit
+                                            ? Random.Range(0, 2) == 1
+                                                ? parent1.chromosomes[j].value
+                                                : parent2.chromosomes[j].value
+                                            : Random.Range(0, 2) == 1,
+                                    name = currentGeneration.candidates[0].chromosomes[j].name,
+                                    inherited = shouldInherit
+                                });
+                        }
+                    }
+
+                    ++m_CurrentGeneticEquation.generations;
+                    m_CurrentGeneticEquation.currentGeneration = newGeneration;
+
+                    yield return null;
+                }
+                yield return new WaitForSeconds(3f);
             }
         }
 
@@ -126,27 +192,67 @@ namespace Library.GeneticAlgorithm
             if (expression == null)
                 yield break;
 
+            m_CurrentlyEvaluatedCandidate = candidate;
             m_CurrentlyEvaluatedExpression = expression;
 
-            var expressionSolverVisualizer = new GameObject().AddComponent<ExpressionSolverVisualizer>();
-            var panel = FindObjectOfType<VerticalLayoutGroup>();
-
-            expressionSolverVisualizer.transform.SetParent(panel.transform);
-            expressionSolverVisualizer.transform.SetAsFirstSibling();
-
-            expressionSolverVisualizer.expression = expression;
-
-            foreach (var variable in expression.GetVariables())
-                foreach (var chromosome in candidate.chromosomes)
+            foreach (var chromosome in candidate.chromosomes)
+                foreach (var variable in expression.GetVariables())
                     if (chromosome.name == variable.stringValue)
                         variable.value = chromosome.value;
+
+            var fitnessEvaluation = expression.Copy() as Expression;
 
             yield return expression.Evaluate();
             var result = expression.expressionObjects.First() as Variable;
 
             equation.solved = (bool)result.value;
+            if (equation.solved)
+            {
+                candidate.fitness = 1f;
 
-            Destroy(expressionSolverVisualizer.gameObject);
+                equation.solvingCandidate = candidate;
+            }
+            else
+            {
+                if (fitnessEvaluation == null)
+                    yield break;
+
+                var expressions = fitnessEvaluation.expressionObjects.OfType<Expression>().ToList();
+
+                var trueClauses = 0f;
+                foreach (var expr in expressions)
+                {
+                    var enumerator = expr.Evaluate();
+                    while (enumerator.MoveNext()) { }
+
+                    var evaluation = expr.expressionObjects.First() as Variable;
+                    if (evaluation == null)
+                        continue;
+
+                    if ((bool)evaluation.value)
+                        ++trueClauses;
+                }
+
+                candidate.fitness = trueClauses / expressions.Count;
+            }
+        }
+
+        private IEnumerator NextStepEvaluation()
+        {
+            Expression.pauseEvaluation = false;
+            yield return new WaitForEndOfFrame();
+            Expression.pauseEvaluation = true;
+        }
+
+        private int SortCandidates(Candidate lhs, Candidate rhs)
+        {
+            if (lhs.fitness < rhs.fitness)
+                return -1;
+
+            if (lhs.fitness > rhs.fitness)
+                return 1;
+
+            return 0;
         }
     }
 }

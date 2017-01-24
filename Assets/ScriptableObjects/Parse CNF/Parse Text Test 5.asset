@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee16910f1f03474b8410ff6dfdcd871, type: 3}
+  m_Name: Parse Text Test 5
+  m_EditorClassIdentifier: 
+  cnfExpression: "(A\u22C1C\u22C1E)\u22C0(B\u22C1C\u22C1E)\u22C0(A\u22C1D\u22C1E)\u22C0(B\u22C1D\u22C1E)(A\u22C1C\u22C1E)\u22C0(B\u22C1C\u22C1E)\u22C0(A\u22C1D\u22C1E)\u22C0(B\u22C1D\u22C1E) "
+  delimiter:
+    open: 40
+    close: 41
+    escape: 92
+  or: 8897
+  and: 8896
+  not: 33
+  expression:
+    stringValue: "(A \u22C1 C \u22C1 E) \u22C0 (B \u22C1 C \u22C1 E) \u22C0 (A \u22C1
+      D \u22C1 E) \u22C0 (B \u22C1 D \u22C1 E) (A \u22C1 C \u22C1 E) \u22C0 (B \u22C1
+      C \u22C1 E) \u22C0 (A \u22C1 D \u22C1 E) \u22C0 (B \u22C1 D \u22C1 E)"

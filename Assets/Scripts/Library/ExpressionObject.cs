@@ -23,6 +23,9 @@
 
         public List<ExpressionObject> currentlyEvaluatedObjects = new List<ExpressionObject>();
 
+        public static bool yieldEvaluation = true;
+        public static bool pauseEvaluation = true;
+
         public IEnumerator Evaluate()
         {
             currentlyEvaluatedObjects.Clear();
@@ -36,8 +39,43 @@
                 currentlyEvaluatedObjects.Clear();
                 currentlyEvaluatedObjects.Add(expression);
 
-                yield return expression.Evaluate();
+                if (yieldEvaluation)
+                    yield return expression.Evaluate();
+                else
+                {
+                    var enumerator = expression.Evaluate();
+                    while (enumerator.MoveNext()) { }
+                }
+
+                while (pauseEvaluation)
+                    yield return null;
+
                 expressionObjects[i] = expression.expressionObjects.First();
+            }
+
+            var foundIndex = expressionObjects.FindIndex(obj => obj is Not);
+            while (foundIndex != -1)
+            {
+                var nextObject = foundIndex + 1 < expressionObjects.Count ?
+                    expressionObjects[foundIndex + 1] : null;
+
+                currentlyEvaluatedObjects.Clear();
+                currentlyEvaluatedObjects.AddRange(
+                    new[] { expressionObjects[foundIndex], nextObject });
+
+                if (yieldEvaluation)
+                    yield return null;
+                while (pauseEvaluation)
+                    yield return null;
+
+                var newObject = ((Not)expressionObjects[foundIndex]).Operation(nextObject);
+
+                expressionObjects.Remove(expressionObjects[foundIndex]);
+                expressionObjects.Insert(foundIndex, newObject);
+
+                expressionObjects.Remove(nextObject);
+
+                foundIndex = expressionObjects.FindIndex(obj => obj is Not);
             }
 
             ExpressionObject previousObject = null;
@@ -50,11 +88,15 @@
                 currentlyEvaluatedObjects.AddRange(
                     new[] { previousObject, expressionObjects[i], nextObject });
 
-                yield return null;
+                if (yieldEvaluation)
+                    yield return null;
+                while (pauseEvaluation)
+                    yield return null;
 
-                if (expressionObjects[i] is Operator)
+                if (expressionObjects[i] is ConditionalOperator)
                 {
-                    var newObject = ((Operator)expressionObjects[i]).Operation(previousObject, nextObject);
+                    var newObject =
+                        ((ConditionalOperator)expressionObjects[i]).Operation(previousObject, nextObject);
 
                     expressionObjects.Remove(expressionObjects[i]);
                     expressionObjects.Insert(i, newObject);
@@ -62,10 +104,17 @@
                     if (!(previousObject is Delimiter))
                         expressionObjects.Remove(previousObject);
                     expressionObjects.Remove(nextObject);
+
+                    i--;
                 }
 
                 previousObject = expressionObjects[i];
             }
+
+            if (yieldEvaluation)
+                yield return null;
+            while (pauseEvaluation)
+                yield return null;
 
             var delimiters = expressionObjects.OfType<Delimiter>().ToList();
             foreach (var delimiter in delimiters)
@@ -75,7 +124,10 @@
 
             UpdateStringValue();
 
-            yield return null;
+            if (yieldEvaluation)
+                yield return null;
+            while (pauseEvaluation)
+                yield return null;
         }
 
         public IEnumerable<Variable> GetVariables()
@@ -107,7 +159,8 @@
 
                 stringValue += expressionObjects[i].stringValue;
 
-                if (expressionObjects[i] is Delimiter || nextObject is Delimiter)
+                if (expressionObjects[i] is Delimiter || nextObject is Delimiter ||
+                    expressionObjects[i] is Not)
                     continue;
 
                 stringValue += " ";
@@ -150,13 +203,16 @@
     }
 
     [Serializable]
-    public abstract class Operator : ExpressionObject
+    public abstract class Operator : ExpressionObject { }
+
+    [Serializable]
+    public abstract class ConditionalOperator : Operator
     {
         public abstract ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs);
     }
 
     [Serializable]
-    public class Or : Operator
+    public class Or : ConditionalOperator
     {
         public override ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
         {
@@ -184,7 +240,7 @@
     }
 
     [Serializable]
-    public class And : Operator
+    public class And : ConditionalOperator
     {
         public override ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
         {
@@ -213,7 +269,7 @@
 
     public class Not : Operator
     {
-        public override ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
+        public ExpressionObject Operation(ExpressionObject rhs)
         {
             var varB = rhs as Variable;
 

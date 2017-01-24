@@ -1,6 +1,9 @@
 ﻿namespace Library
 {
     using System.Linq;
+
+    using GeneticAlgorithm;
+
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -8,14 +11,14 @@
     public class ExpressionSolverVisualizer : MonoBehaviour
     {
         [SerializeField]
-        private Expression m_Expression;
+        private GeneticSolver m_GeneticSolver;
 
         private Text m_Text;
 
-        public Expression expression
+        public GeneticSolver geneticSolver
         {
-            get { return m_Expression; }
-            set { m_Expression = value; }
+            get { return m_GeneticSolver; }
+            set { m_GeneticSolver = value; }
         }
 
         // Use this for initialization
@@ -29,11 +32,14 @@
         // Update is called once per frame
         private void Update()
         {
-            m_Expression.UpdateStringValue();
+            if (m_GeneticSolver.currentlyEvaluatedExpression == null)
+                return;
+
+            m_GeneticSolver.currentlyEvaluatedExpression.UpdateStringValue();
 
             m_Text.text = string.Empty;
 
-            UpdateText(m_Expression);
+            UpdateText(m_GeneticSolver.currentlyEvaluatedExpression);
         }
 
         private void UpdateText(Expression expression)
@@ -60,7 +66,8 @@
                 else
                 {
                     var stringValue =
-                        expressionObjects[i] is Delimiter || nextObject is Delimiter
+                        expressionObjects[i] is Delimiter || nextObject is Delimiter ||
+                        expressionObjects[i] is Not
                             ? expressionObjects[i].stringValue
                             : expressionObjects[i].stringValue + " ";
 

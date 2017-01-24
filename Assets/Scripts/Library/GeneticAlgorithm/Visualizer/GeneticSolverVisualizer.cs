@@ -28,27 +28,23 @@
         {
             var newEquationVisualizer =
                 Instantiate(m_EquationVisualizerPrefab).AddComponent<GeneticEquationVisualizer>();
-            newEquationVisualizer.geneticEquation = m_GeneticSolver.geneticEquation;
+            newEquationVisualizer.geneticSolver = m_GeneticSolver;
 
             newEquationVisualizer.transform.SetParent(m_LayoutGroups.First().transform);
 
-            for (var i = 0; i < 2; ++i)
-            {
-                var candidateVisualizer = new GameObject().AddComponent<GeneticCandidateVisualizer>();
-                candidateVisualizer.transform.SetParent(m_LayoutGroups.Last().transform);
+            var candidateVisualizer = new GameObject().AddComponent<GeneticCandidateVisualizer>();
+            candidateVisualizer.transform.SetParent(m_LayoutGroups.Last().transform);
 
-                m_CandidateVisualizers.Add(candidateVisualizer);
-            }
-        }
+            candidateVisualizer.geneticSolver = m_GeneticSolver;
 
-        // Update is called once per frame
-        private void Update()
-        {
-            for (var i = 0; i < m_CandidateVisualizers.Count; ++i)
-            {
-                m_CandidateVisualizers[i].candidate =
-                    m_GeneticSolver.geneticEquation.generations.Last().candidates[i];
-            }
+            m_CandidateVisualizers.Add(candidateVisualizer);
+
+            var expressionSolverVisualizer = new GameObject().AddComponent<ExpressionSolverVisualizer>();
+
+            expressionSolverVisualizer.transform.SetParent(m_LayoutGroups.First().transform);
+            expressionSolverVisualizer.transform.SetAsFirstSibling();
+
+            expressionSolverVisualizer.geneticSolver = m_GeneticSolver;
         }
     }
 }

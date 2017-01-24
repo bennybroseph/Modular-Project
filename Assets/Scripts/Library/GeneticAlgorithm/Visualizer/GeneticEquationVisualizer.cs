@@ -7,14 +7,14 @@ namespace Library.GeneticAlgorithm.Visualizer
     public class GeneticEquationVisualizer : MonoBehaviour
     {
         [SerializeField]
-        private GeneticEquation m_GeneticEquation;
+        private GeneticSolver m_GeneticSolver;
 
         private Text m_Text;
 
-        public GeneticEquation geneticEquation
+        public GeneticSolver geneticSolver
         {
-            get { return m_GeneticEquation; }
-            set { m_GeneticEquation = value; }
+            get { return m_GeneticSolver; }
+            set { m_GeneticSolver = value; }
         }
 
         // Use this for initialization
@@ -33,7 +33,7 @@ namespace Library.GeneticAlgorithm.Visualizer
         // Update is called once per frame
         private void UpdateText()
         {
-            m_Text.text = m_GeneticEquation.expression.stringValue;
+            m_Text.text = m_GeneticSolver.currentGeneticEquation.expression.stringValue;
         }
     }
 }

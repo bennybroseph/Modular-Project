@@ -1,20 +1,22 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-
-namespace Library.GeneticAlgorithm.Visualizer
+﻿namespace Library.GeneticAlgorithm.Visualizer
 {
+    using System.Linq;
+
+    using UnityEngine;
+    using UnityEngine.UI;
+
     [RequireComponent(typeof(Text))]
     public class GeneticCandidateVisualizer : MonoBehaviour
     {
         [SerializeField]
-        private Candidate m_Candidate;
+        private GeneticSolver m_GeneticSolver;
 
         private Text m_Text;
 
-        public Candidate candidate
+        public GeneticSolver geneticSolver
         {
-            get { return m_Candidate; }
-            set { m_Candidate = value; }
+            get { return m_GeneticSolver; }
+            set { m_GeneticSolver = value; }
         }
 
         // Use this for initialization
@@ -28,9 +30,34 @@ namespace Library.GeneticAlgorithm.Visualizer
         // Update is called once per frame
         private void LateUpdate()
         {
-            m_Text.text = string.Empty;
-            foreach (var chromosome in m_Candidate.chromosomes)
+            if (m_GeneticSolver.currentGeneticEquation.solvingCandidate ==
+                m_GeneticSolver.currentlyEvaluatedCandidate)
+                m_Text.color = Color.green;
+            else
+                m_Text.color = Color.white;
+
+            m_Text.text = "Generation " + m_GeneticSolver.currentGeneticEquation.generations + "\n\n";
+            m_Text.text +=
+                "Candidate " +
+                (m_GeneticSolver.currentGeneticEquation.currentGeneration.candidates.
+                    FindIndex(candidate => candidate == m_GeneticSolver.currentlyEvaluatedCandidate) + 1) +
+                    " / " + m_GeneticSolver.currentGeneticEquation.currentGeneration.candidates.Count +
+                    ":\n";
+
+            var sortedChromosomes =
+                m_GeneticSolver.currentlyEvaluatedCandidate.chromosomes.
+                OrderBy(chromosome => chromosome.name).ToList();
+
+            foreach (var chromosome in sortedChromosomes)
+            {
+                if (chromosome.inherited)
+                    m_Text.text += "<color=#3333FFFF>";
+
                 m_Text.text += chromosome.name + " = " + chromosome.value + "\n";
+
+                if (chromosome.inherited)
+                    m_Text.text += "</color>";
+            }
         }
     }
 }
