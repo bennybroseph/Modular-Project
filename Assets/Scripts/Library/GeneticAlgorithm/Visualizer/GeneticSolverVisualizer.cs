@@ -20,7 +20,10 @@
 
         private void Awake()
         {
-            m_LayoutGroups = GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>().ToList();
+            var thisLayoutGroup = GetComponent<HorizontalOrVerticalLayoutGroup>();
+            m_LayoutGroups =
+                GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>().
+                    Where(layoutGroup => layoutGroup != thisLayoutGroup).ToList();
         }
 
         // Use this for initialization

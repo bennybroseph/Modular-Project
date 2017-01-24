@@ -112,7 +112,7 @@
 
             if (m_NextStepEvaluationButton != null)
                 m_NextStepEvaluationButton.onClick.AddListener(OnNextStepEvaluationButtonPress);
-            if(m_NextCandidateButton != null)
+            if (m_NextCandidateButton != null)
                 m_NextCandidateButton.onClick.AddListener(OnNextCandidateButtonPress);
 
             foreach (var parseCNF in m_ParseCNFs)
@@ -148,6 +148,16 @@
         private void OnNextCandidateButtonPress()
         {
             StartCoroutine(NextCandidate());
+        }
+
+        public void Restart()
+        {
+            StopAllCoroutines();
+
+            Expression.pauseEvaluation = true;
+            Expression.yieldEvaluation = true;
+
+            StartCoroutine(RunSolver());
         }
 
         private IEnumerator RunSolver()

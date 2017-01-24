@@ -24,6 +24,8 @@
 
             m_Toggle.onValueChanged.AddListener(
                 newValue => { Expression.yieldEvaluation = newValue; });
+
+            Expression.onYieldChanged += newValue => m_Toggle.isOn = newValue;
         }
     }
 }
