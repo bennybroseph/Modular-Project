@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: Parse Text Test
   m_EditorClassIdentifier: 
   cnfExpression: (!i v !c) ^ (!a v b v (g v !h)) ^ (c v d v (!c v a v (d v !b))) ^
-    (a v !b) ^ ((!a v (b)) ^ (i v !b) ^ (b v c) ^ (!c v !b)
+    (a v !b) ^ (!a v (b)) ^ (i v !b) ^ (b v c) ^ (!c v !b)
   delimiter:
     open: 40
     close: 41
@@ -22,4 +22,4 @@ MonoBehaviour:
   not: 33
   expression:
     stringValue: (!i v !c) ^ (!a v b v (g v !h)) ^ (c v d v (!c v a v (d v !b))) ^
-      (a v !b) ^ ((!a v (b)) ^ (i v !b) ^ (b v c) ^ (!c v !b)
+      (a v !b) ^ (!a v (b)) ^ (i v !b) ^ (b v c) ^ (!c v !b)
