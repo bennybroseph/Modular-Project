@@ -1,7 +1,5 @@
 ﻿namespace Library.GeneticAlgorithm.Visualizer
 {
-    using System.Linq;
-
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -36,19 +34,15 @@
             else
                 m_Text.color = Color.white;
 
-            m_Text.text = "Generation " + m_GeneticSolver.currentGeneticEquation.generations + "\n\n";
+            m_Text.text = "<b>Generation " + m_GeneticSolver.currentGeneticEquation.generations + "</b>\n\n";
             m_Text.text +=
-                "Candidate " +
+                "<b><i>Candidate " +
                 (m_GeneticSolver.currentGeneticEquation.currentGeneration.candidates.
                     FindIndex(candidate => candidate == m_GeneticSolver.currentlyEvaluatedCandidate) + 1) +
                     " / " + m_GeneticSolver.currentGeneticEquation.currentGeneration.candidates.Count +
-                    ":\n";
+                    " Age - " + m_GeneticSolver.currentlyEvaluatedCandidate.age + ":</i></b>\n";
 
-            var sortedChromosomes =
-                m_GeneticSolver.currentlyEvaluatedCandidate.chromosomes.
-                OrderBy(chromosome => chromosome.name).ToList();
-
-            foreach (var chromosome in sortedChromosomes)
+            foreach (var chromosome in m_GeneticSolver.currentlyEvaluatedCandidate.chromosomes)
             {
                 if (chromosome.inherited)
                     m_Text.text += "<color=#3333FFFF>";

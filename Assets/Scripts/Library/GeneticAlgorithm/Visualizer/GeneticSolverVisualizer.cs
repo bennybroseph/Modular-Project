@@ -31,15 +31,19 @@
             newEquationVisualizer.geneticSolver = m_GeneticSolver;
 
             newEquationVisualizer.transform.SetParent(m_LayoutGroups.First().transform);
+            newEquationVisualizer.transform.SetAsFirstSibling();
 
-            var candidateVisualizer = new GameObject().AddComponent<GeneticCandidateVisualizer>();
-            candidateVisualizer.transform.SetParent(m_LayoutGroups.Last().transform);
-
+            var candidateVisualizer =
+                Instantiate(m_EquationVisualizerPrefab).AddComponent<GeneticCandidateVisualizer>();
             candidateVisualizer.geneticSolver = m_GeneticSolver;
+
+            candidateVisualizer.transform.SetParent(m_LayoutGroups.Last().transform);
+            candidateVisualizer.transform.SetAsFirstSibling();
 
             m_CandidateVisualizers.Add(candidateVisualizer);
 
-            var expressionSolverVisualizer = new GameObject().AddComponent<ExpressionSolverVisualizer>();
+            var expressionSolverVisualizer =
+                Instantiate(m_EquationVisualizerPrefab).AddComponent<ExpressionSolverVisualizer>();
 
             expressionSolverVisualizer.transform.SetParent(m_LayoutGroups.First().transform);
             expressionSolverVisualizer.transform.SetAsFirstSibling();

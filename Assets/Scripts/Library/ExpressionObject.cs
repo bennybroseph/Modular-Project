@@ -19,12 +19,43 @@
     [Serializable]
     public class Expression : ExpressionObject
     {
+        private static bool m_YieldEvaluation = true;
+        private static bool m_PauseEvaluation = true;
+
+        public delegate void OnYieldChanged(bool newValue);
+        public static event OnYieldChanged onYieldChanged;
+
+        public delegate void OnPauseChanged(bool newValue);
+        public static event OnPauseChanged onPauseChanged;
+
         public List<ExpressionObject> expressionObjects = new List<ExpressionObject>();
 
         public List<ExpressionObject> currentlyEvaluatedObjects = new List<ExpressionObject>();
 
-        public static bool yieldEvaluation = true;
-        public static bool pauseEvaluation = true;
+        public static bool yieldEvaluation
+        {
+            get { return m_YieldEvaluation; }
+            set
+            {
+                m_YieldEvaluation = value;
+                if (m_YieldEvaluation == false)
+                    pauseEvaluation = false;
+
+                if (onYieldChanged != null)
+                    onYieldChanged.Invoke(value);
+            }
+        }
+        public static bool pauseEvaluation
+        {
+            get { return m_PauseEvaluation; }
+            set
+            {
+                m_PauseEvaluation = value;
+
+                if (onPauseChanged != null)
+                    onPauseChanged.Invoke(value);
+            }
+        }
 
         public IEnumerator Evaluate()
         {
@@ -110,39 +141,6 @@
                 foundIndex = expressionObjects.FindIndex(obj => obj is ConditionalOperator);
             }
 
-            //ExpressionObject previousObject = null;
-            //for (var i = 0; i < expressionObjects.Count; ++i)
-            //{
-            //    var nextObject = i + 1 < expressionObjects.Count ?
-            //        expressionObjects[i + 1] : null;
-
-            //    currentlyEvaluatedObjects.Clear();
-            //    currentlyEvaluatedObjects.AddRange(
-            //        new[] { previousObject, expressionObjects[i], nextObject });
-
-            //    if (yieldEvaluation)
-            //        yield return null;
-            //    while (pauseEvaluation)
-            //        yield return null;
-
-            //    if (expressionObjects[i] is ConditionalOperator)
-            //    {
-            //        var newObject =
-            //            ((ConditionalOperator)expressionObjects[i]).Operation(previousObject, nextObject);
-
-            //        expressionObjects.Remove(expressionObjects[i]);
-            //        expressionObjects.Insert(i, newObject);
-
-            //        if (!(previousObject is Delimiter))
-            //            expressionObjects.Remove(previousObject);
-            //        expressionObjects.Remove(nextObject);
-
-            //        i--;
-            //    }
-
-            //    previousObject = expressionObjects[i];
-            //}
-
             if (yieldEvaluation)
                 yield return null;
             while (pauseEvaluation)
@@ -156,8 +154,8 @@
 
             UpdateStringValue();
 
-            if (yieldEvaluation)
-                yield return null;
+            yield return null;
+
             while (pauseEvaluation)
                 yield return null;
         }
@@ -240,29 +238,45 @@
     [Serializable]
     public abstract class ConditionalOperator : Operator
     {
-        public abstract ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs);
+        public ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
+        {
+            var varA = lhs as Variable;
+            var varB = rhs as Variable;
+
+            if (varA == null || varB == null ||
+                varA.value == null || varB.value == null)
+            {
+                var logText =
+                    "Cannot perform " + GetType() + " operation on " + lhs.stringValue + " and " +
+                    rhs.stringValue + "of type " + lhs.GetType() + " and " + rhs.GetType() + " respectively.";
+
+                if (varA != null && varA.value == null)
+                    logText += "varA.value was null";
+                if (varB != null && varB.value == null)
+                    logText += "varB.value was null";
+
+                Debug.LogError(logText);
+
+                return null;
+            }
+
+            var valueA = (bool)varA.value;
+            var valueB = (bool)varB.value;
+
+            var result = CustomOperation(valueA, valueB);
+
+            return new Variable { stringValue = result.ToString(), value = result };
+        }
+
+        protected abstract bool CustomOperation(bool lhs, bool rhs);
     }
 
     [Serializable]
     public class Or : ConditionalOperator
     {
-        public override ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
+        protected override bool CustomOperation(bool lhs, bool rhs)
         {
-            var varA = lhs as Variable;
-            var varB = rhs as Variable;
-
-            if (varA != null && varB != null)
-            {
-                var valueA = (bool)varA.value;
-                var valueB = (bool)varB.value;
-
-                var result = valueA || valueB;
-
-                return new Variable { stringValue = result.ToString(), value = result };
-            }
-
-            Debug.LogError("Cannot perform Or operation on " + lhs.stringValue + " and " + rhs.stringValue);
-            return null;
+            return lhs || rhs;
         }
 
         public override ExpressionObject Copy()
@@ -274,23 +288,9 @@
     [Serializable]
     public class And : ConditionalOperator
     {
-        public override ExpressionObject Operation(ExpressionObject lhs, ExpressionObject rhs)
+        protected override bool CustomOperation(bool lhs, bool rhs)
         {
-            var varA = lhs as Variable;
-            var varB = rhs as Variable;
-
-            if (varA != null && varB != null)
-            {
-                var valueA = (bool)varA.value;
-                var valueB = (bool)varB.value;
-
-                var result = valueA && valueB;
-
-                return new Variable { stringValue = result.ToString(), value = result };
-            }
-
-            Debug.LogError("Cannot perform And operation on " + lhs.stringValue + " and " + rhs.stringValue);
-            return null;
+            return lhs && rhs;
         }
 
         public override ExpressionObject Copy()
@@ -305,17 +305,17 @@
         {
             var varB = rhs as Variable;
 
-            if (varB != null)
+            if (varB == null || varB.value == null)
             {
-                var valueB = (bool)varB.value;
-
-                var result = !valueB;
-
-                return new Variable { stringValue = result.ToString(), value = result };
+                Debug.LogError("Incorrect rhs for Not operator");
+                return null;
             }
 
-            Debug.LogError("Incorrect rhs for Not operator");
-            return null;
+            var valueB = (bool)varB.value;
+
+            var result = !valueB;
+
+            return new Variable { stringValue = result.ToString(), value = result };
         }
 
         public override ExpressionObject Copy()
@@ -323,6 +323,9 @@
             return new Not { stringValue = stringValue };
         }
     }
+
+    [Serializable]
+    public abstract class ArithmeticOperator : Operator { }
 
     [Serializable]
     public class Delimiter : ExpressionObject
