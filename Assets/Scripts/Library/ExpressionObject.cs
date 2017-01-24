@@ -78,38 +78,70 @@
                 foundIndex = expressionObjects.FindIndex(obj => obj is Not);
             }
 
-            ExpressionObject previousObject = null;
-            for (var i = 0; i < expressionObjects.Count; ++i)
+            foundIndex = expressionObjects.FindIndex(obj => obj is ConditionalOperator);
+            while (foundIndex != -1)
             {
-                var nextObject = i + 1 < expressionObjects.Count ?
-                    expressionObjects[i + 1] : null;
+                var previousObject = foundIndex - 1 >= 0 ?
+                    expressionObjects[foundIndex - 1] : null;
+
+                var nextObject = foundIndex + 1 < expressionObjects.Count ?
+                    expressionObjects[foundIndex + 1] : null;
 
                 currentlyEvaluatedObjects.Clear();
                 currentlyEvaluatedObjects.AddRange(
-                    new[] { previousObject, expressionObjects[i], nextObject });
+                    new[] { previousObject, expressionObjects[foundIndex], nextObject });
 
                 if (yieldEvaluation)
                     yield return null;
                 while (pauseEvaluation)
                     yield return null;
 
-                if (expressionObjects[i] is ConditionalOperator)
-                {
-                    var newObject =
-                        ((ConditionalOperator)expressionObjects[i]).Operation(previousObject, nextObject);
+                var newObject =
+                    ((ConditionalOperator)expressionObjects[foundIndex]).
+                        Operation(previousObject, nextObject);
 
-                    expressionObjects.Remove(expressionObjects[i]);
-                    expressionObjects.Insert(i, newObject);
+                expressionObjects.Remove(expressionObjects[foundIndex]);
+                expressionObjects.Insert(foundIndex, newObject);
 
-                    if (!(previousObject is Delimiter))
-                        expressionObjects.Remove(previousObject);
-                    expressionObjects.Remove(nextObject);
+                if (!(previousObject is Delimiter))
+                    expressionObjects.Remove(previousObject);
+                expressionObjects.Remove(nextObject);
 
-                    i--;
-                }
-
-                previousObject = expressionObjects[i];
+                foundIndex = expressionObjects.FindIndex(obj => obj is ConditionalOperator);
             }
+
+            //ExpressionObject previousObject = null;
+            //for (var i = 0; i < expressionObjects.Count; ++i)
+            //{
+            //    var nextObject = i + 1 < expressionObjects.Count ?
+            //        expressionObjects[i + 1] : null;
+
+            //    currentlyEvaluatedObjects.Clear();
+            //    currentlyEvaluatedObjects.AddRange(
+            //        new[] { previousObject, expressionObjects[i], nextObject });
+
+            //    if (yieldEvaluation)
+            //        yield return null;
+            //    while (pauseEvaluation)
+            //        yield return null;
+
+            //    if (expressionObjects[i] is ConditionalOperator)
+            //    {
+            //        var newObject =
+            //            ((ConditionalOperator)expressionObjects[i]).Operation(previousObject, nextObject);
+
+            //        expressionObjects.Remove(expressionObjects[i]);
+            //        expressionObjects.Insert(i, newObject);
+
+            //        if (!(previousObject is Delimiter))
+            //            expressionObjects.Remove(previousObject);
+            //        expressionObjects.Remove(nextObject);
+
+            //        i--;
+            //    }
+
+            //    previousObject = expressionObjects[i];
+            //}
 
             if (yieldEvaluation)
                 yield return null;
