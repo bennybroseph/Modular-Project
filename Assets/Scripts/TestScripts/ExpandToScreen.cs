@@ -4,10 +4,13 @@
 
     public class ExpandToScreen : MonoBehaviour
     {
+        private RectTransform m_ParentRectTransform;
         private Vector2 m_PreviousScreenSize;
 
         private void LateUpdate()
         {
+            m_ParentRectTransform = GetComponentInParent<RectTransform>();
+
             var currentScreenSize = new Vector2(Screen.width, Screen.height);
             if (m_PreviousScreenSize == currentScreenSize)
                 return;
@@ -20,24 +23,24 @@
                     childTransform.SetInsetAndSizeFromParentEdge(
                         index == 0 ? RectTransform.Edge.Left : RectTransform.Edge.Right,
                         0,
-                        Screen.width / 2f);
+                        m_ParentRectTransform.rect.width / 2f);
 
                     childTransform.SetInsetAndSizeFromParentEdge(
                         RectTransform.Edge.Top,
                         0,
-                        Screen.height);
+                        m_ParentRectTransform.rect.height);
                 }
                 else
                 {
                     childTransform.SetInsetAndSizeFromParentEdge(
                         RectTransform.Edge.Left,
                         0,
-                        Screen.width);
+                        m_ParentRectTransform.rect.width);
 
                     childTransform.SetInsetAndSizeFromParentEdge(
                         index == 0 ? RectTransform.Edge.Top : RectTransform.Edge.Bottom,
                         0,
-                        Screen.height / 2f);
+                        m_ParentRectTransform.rect.height / 2f);
                 }
 
                 ++index;

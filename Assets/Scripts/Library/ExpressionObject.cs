@@ -37,12 +37,18 @@
             get { return m_YieldEvaluation; }
             set
             {
-                m_YieldEvaluation = value;
-                if (m_YieldEvaluation == false)
-                    pauseEvaluation = false;
+                // Prevent it being set to the same value it is currently
+                if (m_YieldEvaluation == value)
+                    return;
 
+                m_YieldEvaluation = value;
+
+                // Only invoke the callback if it has a value
                 if (onYieldChanged != null)
                     onYieldChanged.Invoke(value);
+
+                if (!m_YieldEvaluation)
+                    pauseEvaluation = false;
             }
         }
         public static bool pauseEvaluation
@@ -50,6 +56,15 @@
             get { return m_PauseEvaluation; }
             set
             {
+                if (m_PauseEvaluation == value)
+                    return;
+
+                // Prevent m_PauseEvaluation from being true when m_YieldEvaluation is false
+                // Set value to false if this is the case and continue so that UI objects that subscribed
+                // to the callback are notified that it is still false even though an event fired to change it
+                if (value && !m_YieldEvaluation)
+                    yieldEvaluation = true;
+
                 m_PauseEvaluation = value;
 
                 if (onPauseChanged != null)
@@ -223,7 +238,7 @@
     [Serializable]
     public class Variable : ExpressionObject
     {
-        public object value;
+        public object value = new object();
 
         // This is only a shallow copy
         public override ExpressionObject Copy()
@@ -243,17 +258,11 @@
             var varA = lhs as Variable;
             var varB = rhs as Variable;
 
-            if (varA == null || varB == null ||
-                varA.value == null || varB.value == null)
+            if (varA == null || varB == null)
             {
                 var logText =
                     "Cannot perform " + GetType() + " operation on " + lhs.stringValue + " and " +
                     rhs.stringValue + "of type " + lhs.GetType() + " and " + rhs.GetType() + " respectively.";
-
-                if (varA != null && varA.value == null)
-                    logText += "varA.value was null";
-                if (varB != null && varB.value == null)
-                    logText += "varB.value was null";
 
                 Debug.LogError(logText);
 
@@ -308,6 +317,7 @@
             if (varB == null || varB.value == null)
             {
                 Debug.LogError("Incorrect rhs for Not operator");
+
                 return null;
             }
 

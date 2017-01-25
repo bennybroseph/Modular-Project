@@ -28,11 +28,8 @@
         // Update is called once per frame
         private void LateUpdate()
         {
-            if (m_GeneticSolver.currentGeneticEquation.solvingCandidate ==
-                m_GeneticSolver.currentlyEvaluatedCandidate)
-                m_Text.color = Color.green;
-            else
-                m_Text.color = Color.white;
+            m_Text.color = m_GeneticSolver.currentGeneticEquation.solvingCandidate ==
+                           m_GeneticSolver.currentlyEvaluatedCandidate ? Color.green : Color.white;
 
             m_Text.text = "<b>Generation " + m_GeneticSolver.currentGeneticEquation.generations + "</b>\n\n";
             m_Text.text +=
@@ -52,6 +49,14 @@
                 if (chromosome.inherited)
                     m_Text.text += "</color>";
             }
+
+            if (m_GeneticSolver.currentGeneticEquation.solvingCandidate !=
+                m_GeneticSolver.currentlyEvaluatedCandidate)
+                return;
+
+            m_Text.text += "\n\n";
+            foreach (var chromosome in m_GeneticSolver.currentlyEvaluatedCandidate.chromosomes)
+                m_Text.text += chromosome.value ? "1 " : "0 ";
         }
     }
 }

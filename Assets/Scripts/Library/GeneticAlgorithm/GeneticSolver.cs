@@ -154,8 +154,8 @@
         {
             StopAllCoroutines();
 
-            Expression.pauseEvaluation = true;
             Expression.yieldEvaluation = true;
+            Expression.pauseEvaluation = true;
 
             StartCoroutine(RunSolver());
         }
