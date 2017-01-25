@@ -42,7 +42,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 7
-  m_GIWorkflowMode: 1
+  m_GIWorkflowMode: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -960,7 +960,7 @@ Prefab:
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -118.25979
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
@@ -970,7 +970,7 @@ Prefab:
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 65.86598
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
@@ -2401,7 +2401,7 @@ Prefab:
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -234.12576
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
@@ -2411,7 +2411,7 @@ Prefab:
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 65.86598
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224291471648539164, guid: 0f3882e1452d436488e0a9a629c1bdb6,
         type: 2}
@@ -3328,9 +3328,6 @@ MonoBehaviour:
   m_NextCandidateButton: {fileID: 1928651215}
   m_ParseCNFs:
   - {fileID: 11400000, guid: 1b693237a25f48a43bbac1b35d28ba0a, type: 2}
-  - {fileID: 11400000, guid: 7f6a57261e7cc334e99b341992a477b9, type: 2}
-  - {fileID: 11400000, guid: 2034eb93e1d346443bbdaabe1c4991cb, type: 2}
-  - {fileID: 11400000, guid: 65843d8b10f8fe74ca4aa285f0dda000, type: 2}
   m_CurrentGeneticEquation:
     currentGeneration:
       candidates: []
