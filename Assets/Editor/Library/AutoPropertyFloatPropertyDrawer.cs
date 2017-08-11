@@ -3,7 +3,7 @@
     using UnityEngine;
     using UnityEditor;
 
-    [CustomPropertyDrawer(typeof(AutoPropertyFloat))]
+    //[CustomPropertyDrawer(typeof(AutoPropertyFloat))]
     public class AutoPropertyFloatPropertyDrawer : AutoPropertyGenericPropertyDrawer<float>
     {
         protected override float DrawDataField(Rect position, SerializedProperty property)

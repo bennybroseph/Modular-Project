@@ -3,7 +3,7 @@
     using UnityEngine;
     using UnityEditor;
 
-    [CustomPropertyDrawer(typeof(AutoPropertyVector3))]
+    //[CustomPropertyDrawer(typeof(AutoPropertyVector3))]
     public class AutoPropertyVector3PropertyDrawer : AutoPropertyGenericPropertyDrawer<Vector3>
     {
         protected override Vector3 DrawDataField(Rect position, SerializedProperty property)

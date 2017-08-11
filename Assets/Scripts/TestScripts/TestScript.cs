@@ -5,12 +5,12 @@ namespace TestScripts
 {
     public class TestScript : MonoBehaviour
     {
-        public AutoPropertyString m_TestValueString;
+        //public AutoPropertyString m_TestValueString;
 
-        public AutoPropertyInt m_TestValueInt;
-        public AutoPropertyFloat m_TestValueFloat;
+        //public AutoPropertyInt m_TestValueInt;
+        //public AutoPropertyFloat m_TestValueFloat;
 
-        public AutoPropertyVector2 m_TestValueVector2;
-        public AutoPropertyVector3 m_TestValueVector3;
+        //public AutoPropertyVector2 m_TestValueVector2;
+        //public AutoPropertyVector3 m_TestValueVector3;
     }
 }
